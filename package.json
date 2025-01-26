@@ -1,8 +1,8 @@
 {
-  "name": "express-api-v2",
+  "name": "express-api-v3",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@github.com:dxtr-mrgn/express-api-v2.git",
+  "repository": "git@github.com:dxtr-mrgn/express-api-v3.git",
   "author": "Dexter Morgan <ck12.test.aa@gmail.com>",
   "license": "MIT",
   "scripts": {
