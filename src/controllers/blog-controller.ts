@@ -1,44 +1,52 @@
 import express, {Request, Response} from 'express';
-import {blogRepository} from '../repositories/blog-repository';
+import {blogService} from '../service/blog-service';
 import {HttpStatus} from '../settings';
 import {
     blogDescriptionValidator,
-    paramIdValidator,
     blogNameValidator,
-    blogWebsiteUrlValidator
+    blogWebsiteUrlValidator,
+    paramIdValidator
 } from '../middleware/input-validators';
 import {errorsResultMiddleware} from '../middleware/errors-result-middleware';
 import {authValidator} from '../middleware/auth-validator';
+import {BlogDBType} from '../types/blog-types';
 
 export const blogRouter = express.Router();
 
-const blogController: any = {
-    async getBlogs(req: Request, res: Response) {
-        const blogs = await blogRepository.findBlogs();
+const blogController = {
+    async getBlogs(req: Request, res: Response): Promise<void> {
+        let searchNameTerm = req.query.searchNameTerm ? req.query.searchNameTerm as string : null;
+        let sortBy = req.query.sortBy ? req.query.sortBy as string : 'createdAt';
+        let sortDirection = req.query.sortDirection && req.query.sortDirection === 'asc' ? 'asc' : 'desc';
+        let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number: 1;
+        let pageSize = req.query.pageSize ? +req.query.pageSize as number: 10;
+
+        const blogs =
+            await blogService.findBlogs({searchNameTerm, sortBy, sortDirection, pageNumber, pageSize,});
         res.status(HttpStatus.OK).send(blogs);
     },
-    async getBlogById(req: Request, res: Response) {
-        const blog = (await blogRepository.findBlogs(req.params.id))[0];
+    async getBlogById(req: Request, res: Response): Promise<void> {
+        let blog: any = (await blogService.findBlogsById(req.params.id))[0];
         if (!blog) {
             res.sendStatus(HttpStatus.NOT_FOUND);
         } else {
             res.status(HttpStatus.OK).send(blog);
         }
     },
-    async createBlog(req: Request, res: Response) {
-        const blog = (await blogRepository.createBlog(req.body))[0];
+    async createBlog(req: Request, res: Response): Promise<void> {
+        const blog = (await blogService.createBlog(req.body))[0];
         if (blog) res.status(HttpStatus.CREATED).send(blog);
     },
-    async updateBlog(req: Request, res: Response) {
-        const blog = await blogRepository.updateBlog(req.params.id, req.body);
+    async updateBlog(req: Request, res: Response): Promise<void> {
+        const blog = await blogService.updateBlog(req.params.id, req.body);
         if (blog) {
             res.sendStatus(HttpStatus.NO_CONTENT);
         } else {
             res.sendStatus(HttpStatus.NOT_FOUND);
         }
     },
-    async deleteBlog(req: Request, res: Response) {
-        const blog = await blogRepository.deleteBlog(req.params.id);
+    async deleteBlog(req: Request, res: Response): Promise<void> {
+        const blog = await blogService.deleteBlog(req.params.id);
         if (blog) {
             res.sendStatus(HttpStatus.NO_CONTENT);
         } else {
