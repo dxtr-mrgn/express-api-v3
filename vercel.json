@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "Express App v2",
+  "name": "Express App v3",
   "builds": [
     {
       "src": "src/index.ts",

@@ -11,7 +11,7 @@ export const app = express();
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response): void => {
-    res.send({'Version': 'mongo 2.0'});
+    res.send({'Version': 'BLL 1.0'});
 });
 
 app.delete(SETTINGS.API.ALL_DATA, async (req: Request, res: Response): Promise<void> => {
