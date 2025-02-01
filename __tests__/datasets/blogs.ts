@@ -171,3 +171,10 @@ export const validBlog = {
         'websiteUrl': 'https://1U_6htpDD23G7sy-AstWRa4UV6DPN-YTwEVJABFYvYmN8cryBAA3hihb-3eFqM9GnFr3q.kKX8WgmbfmBjIMUIFDjMZA'
     }
 };
+
+export const defaultBlogResponse = {
+    pageCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalCount: 0
+};

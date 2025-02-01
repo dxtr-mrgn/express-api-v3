@@ -1,8 +1,16 @@
 import {body, param} from 'express-validator';
-import {blogCollection} from '../repositories/blog-repository';
+import {blogCollection, blogRepository} from '../repositories/blog-repository';
+import {ObjectId} from 'mongodb';
+import {FgRed, log} from '../../__tests__/logHelper';
 
 export const paramIdValidator = param('id')
-    .notEmpty();
+    .notEmpty()
+    .custom(value => {
+        if (!ObjectId.isValid(value)) {
+            throw new Error('Id should be valid');
+        }
+        return true;
+    });
 
 export const blogNameValidator = body('name')
     .trim()
@@ -99,9 +107,15 @@ export const postContentValidator = body('content')
 export const postBlogIdValidator = body('blogId')
     .trim()
     .notEmpty().withMessage('blogId is required')
-    .isString().withMessage('blogId should be string')
-    .custom(async (value) => { // Make the custom function asynchronous
-        const blog: any = (await blogCollection.find({id: value}, {projection: {_id: 0}}).toArray())[0];
+    .custom(value => {
+        if (!ObjectId.isValid(value)) {
+            throw new Error('blogId is invalid');
+        }
+        return true;
+    })
+    .custom(async (value) => {
+        const blog: any = await blogRepository.findBlogsById(value);
+
         if (!blog) {
             throw new Error('blogId is invalid');
         }

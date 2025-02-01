@@ -8,7 +8,7 @@ console.log('MongoDB Name: ' + SETTINGS.DB_NAME);
 
 export const blogRepository = {
     async getBlogs(filter?: any) {
-        return await blogCollection.aggregate([
+        const blogs = await blogCollection.aggregate([
             ...filter,
             {
                 $project: {
@@ -21,6 +21,8 @@ export const blogRepository = {
                     isMembership: 1
                 }
             }]).toArray();
+
+        return blogs;
     },
     async deleteAllBlogs() {
         await blogCollection.deleteMany({});
@@ -30,7 +32,7 @@ export const blogRepository = {
         return await blogRepository.getBlogs([{$match: {_id: new ObjectId(res.insertedId)}}]);
     },
     async updateBlog(id: string, blogUpdate: BlogInputType) {
-        const res: any = await blogCollection.updateOne({id}, {$set: blogUpdate});
+        const res: any = await blogCollection.updateOne({_id: new ObjectId(id)}, {$set: blogUpdate});
 
         return res.modifiedCount === 1;
     },
@@ -66,7 +68,7 @@ export const blogRepository = {
         return blogCollection.countDocuments(filter);
     },
     async findBlogsById(id: string): Promise<any> {
-        return await blogRepository.getBlogs([{$match: {_id: new ObjectId(id)}}])
+        return (await blogRepository.getBlogs([{$match: {_id: new ObjectId(id)}}]))[0]
     },
     async deleteBlog(id: string): Promise<number> {
         const res: DeleteResult = await blogCollection.deleteOne({id});

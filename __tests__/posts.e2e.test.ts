@@ -2,10 +2,12 @@ import request from 'supertest';
 import {app} from '../src/app';
 import {HttpStatus, SETTINGS} from '../src/settings';
 import {
+    defaultPostResponse,
     invalidBlogIdPost,
     invalidContentPost,
     invalidDescPost,
-    invalidTitlePost, missingAllPost,
+    invalidTitlePost,
+    missingAllPost,
     missingContentPost,
     missingDescPost,
     missingIdPost,
@@ -17,6 +19,7 @@ import {
 } from './datasets/posts';
 import {validBlog} from './datasets/blogs';
 import {client} from '../src/db/mongodb';
+import {BgGreen, FgCyan, FgGreen, FgRed, log} from './logHelper';
 
 const api = () => request(app);
 
@@ -28,7 +31,10 @@ describe('Posts', () => {
             .expect(HttpStatus.NO_CONTENT);
         await api()
             .get(SETTINGS.API.POSTS)
-            .expect(HttpStatus.OK, []);
+            .expect(HttpStatus.OK, {
+                ...defaultPostResponse,
+                items: []
+            });
 
         console.log('All the posts have been deleted');
 
@@ -157,16 +163,21 @@ describe('Posts', () => {
                 .expect(HttpStatus.UNAUTHORIZED);
         });
         it('Create a Post - 200', async () => {
+
             const res = await api()
                 .post(SETTINGS.API.POSTS)
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .send(validPost.payload);
 
             expect(res.status).toBe(HttpStatus.CREATED);
+
+            log(FgRed, 'Original');
+            log(FgCyan, res.body);
             expect(Object.keys(res.body)).toHaveLength(7);
 
             expect(typeof res.body.id).toBe('string');
             expect(typeof res.body.title).toBe('string');
+            expect(typeof res.body.content).toBe('string');
             expect(typeof res.body.shortDescription).toBe('string');
             expect(typeof res.body.blogId).toBe('string');
             expect(typeof res.body.blogName).toBe('string');
@@ -191,6 +202,8 @@ describe('Posts', () => {
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .expect(HttpStatus.CREATED);
 
+            log(FgRed, 'Duplicate');
+            log(FgCyan, res.body);
             expect(Object.keys(res.body)).toHaveLength(7);
 
             expect(typeof res.body.id).toBe('string');
@@ -216,7 +229,13 @@ describe('Posts', () => {
         it('GET /posts', async () => {
             await api()
                 .get(SETTINGS.API.POSTS)
-                .expect(HttpStatus.OK, [newPost1, newPost2]);
+                .expect(HttpStatus.OK, {
+                    pageCount: 1,
+                    page: 1,
+                    pageSize: 10,
+                    totalCount: 2,
+                    items: [newPost2, newPost1]
+                });
         });
     });
     describe('GET /posts/:id', () => {
@@ -364,9 +383,15 @@ describe('Posts', () => {
 
             await api()
                 .put(newPost1IdUrl)
-                .send(postToUpdate)
+                .send({
+                    title: postToUpdate.title,
+                    shortDescription: postToUpdate.shortDescription,
+                    content: postToUpdate.content,
+                    blogId: postToUpdate.blogId
+                })
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .expect(HttpStatus.NO_CONTENT);
+
             const res = await api()
                 .get(newPost1IdUrl)
                 .expect(HttpStatus.OK);
@@ -378,7 +403,12 @@ describe('Posts', () => {
 
             await api()
                 .put(newPost1IdUrl)
-                .send(postToUpdate)
+                .send({
+                    title: postToUpdate.title,
+                    shortDescription: postToUpdate.shortDescription,
+                    content: postToUpdate.content,
+                    blogId: postToUpdate.blogId
+                })
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .expect(HttpStatus.NO_CONTENT);
             const res = await api()
@@ -392,7 +422,12 @@ describe('Posts', () => {
 
             await api()
                 .put(newPost1IdUrl)
-                .send(postToUpdate)
+                .send({
+                    title: postToUpdate.title,
+                    shortDescription: postToUpdate.shortDescription,
+                    content: postToUpdate.content,
+                    blogId: postToUpdate.blogId
+                })
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .expect(HttpStatus.NO_CONTENT);
             const res = await api()
@@ -412,9 +447,15 @@ describe('Posts', () => {
 
             await api()
                 .put(newPost1IdUrl)
-                .send(postToUpdate)
+                .send({
+                    title: postToUpdate.title,
+                    shortDescription: postToUpdate.shortDescription,
+                    content: postToUpdate.content,
+                    blogId: postToUpdate.blogId
+                })
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .expect(HttpStatus.NO_CONTENT);
+
             const res = await api()
                 .get(newPost1IdUrl)
                 .expect(HttpStatus.OK);
@@ -425,7 +466,13 @@ describe('Posts', () => {
         it('Updated Post is getting back with all Posts', async () => {
             await api()
                 .get(SETTINGS.API.POSTS)
-                .expect(HttpStatus.OK, [newPost1, newPost2]);
+                .expect(HttpStatus.OK, {
+                    pageCount: 1,
+                    page: 1,
+                    pageSize: 10,
+                    totalCount: 2,
+                    items: [newPost2, newPost1]
+                });
         });
     });
     describe('DELETE /posts/:id', () => {
@@ -466,7 +513,13 @@ describe('Posts', () => {
         it('Deleted Post is not returned with all posts', async () => {
             await api()
                 .get(SETTINGS.API.POSTS)
-                .expect(HttpStatus.OK, [newPost2]);
+                .expect(HttpStatus.OK, {
+                    pageCount: 1,
+                    page: 1,
+                    pageSize: 10,
+                    totalCount: 1,
+                    items: [newPost2]
+                });
         });
     });
     afterAll(async () => {

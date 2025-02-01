@@ -59,7 +59,7 @@ export const invalidBlogIdPost = {
     error: {
         errorsMessages: [
             {
-                message: 'blogId should be string',
+                message: 'blogId is invalid',
                 field: 'blogId'
             }
         ]
@@ -210,3 +210,10 @@ export const validPost = {
         'blogId': 'valid blogId',
     }
 }
+
+export const defaultPostResponse = {
+    pageCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalCount: 0
+};

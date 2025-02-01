@@ -2,6 +2,7 @@ import request from 'supertest';
 import {app} from '../src/app';
 import {HttpStatus, SETTINGS} from '../src/settings';
 import {
+    defaultBlogResponse,
     incorrectUrlPattern,
     invalidDescBlog,
     invalidNameBlog,
@@ -26,9 +27,12 @@ describe('Blogs', () => {
             .expect(HttpStatus.NO_CONTENT);
         const res = await api()
             .get(SETTINGS.API.BLOGS)
-            .expect(HttpStatus.OK, []);
+            .expect(HttpStatus.OK, {
+                ...defaultBlogResponse,
+                items: []
+            });
 
-        console.log("DB: ", res.body)
+        console.log('DB: ', res.body);
     });
     let newBlog1: any = {}, newBlog2: any = {}, blogToUpdate: any = {}, newBlog1IdUrl: string = '';
     describe('POST /blogs', () => {
@@ -197,7 +201,13 @@ describe('Blogs', () => {
         it('GET /blogs', async () => {
             await api()
                 .get(SETTINGS.API.BLOGS)
-                .expect(HttpStatus.OK, [newBlog1, newBlog2]);
+                .expect(HttpStatus.OK, {
+                    pageCount: 1,
+                    page: 1,
+                    pageSize: 10,
+                    totalCount: 2,
+                    items: [newBlog2, newBlog1]
+                });
         });
     });
     describe('GET /blogs/:id', () => {
@@ -213,7 +223,7 @@ describe('Blogs', () => {
                 .get(newBlog1IdUrl)
                 .expect(HttpStatus.OK);
 
-            console.log(res.body)
+            console.log(res.body);
             expect(Object.keys(res.body)).toHaveLength(6);
 
             expect(typeof res.body.id).toBe('string');
@@ -335,11 +345,20 @@ describe('Blogs', () => {
         it('Update a name in the Blog - 204', async () => {
             blogToUpdate.name = 'Updated Name';
 
+            console.log(newBlog1IdUrl);
+            console.log(blogToUpdate);
+
             await api()
                 .put(newBlog1IdUrl)
-                .send(blogToUpdate)
+                .send({
+                    name: blogToUpdate.name,
+                    description: blogToUpdate.description,
+                    websiteUrl: blogToUpdate.websiteUrl
+                })
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .expect(HttpStatus.NO_CONTENT);
+
+            console.log('Updated Successfully');
             const res = await api()
                 .get(newBlog1IdUrl)
                 .expect(HttpStatus.OK);
@@ -378,7 +397,13 @@ describe('Blogs', () => {
         it('Updated Blog is getting back with all Blogs', async () => {
             await api()
                 .get(SETTINGS.API.BLOGS)
-                .expect(HttpStatus.OK, [newBlog1, newBlog2]);
+                .expect(HttpStatus.OK, {
+                    pageCount: 1,
+                    page: 1,
+                    pageSize: 10,
+                    totalCount: 2,
+                    items: [newBlog2, newBlog1]
+                });
         });
     });
     describe('DELETE /blogs/:id', () => {
@@ -419,7 +444,13 @@ describe('Blogs', () => {
         it('Deleted Blog is not returned with all blogs', async () => {
             await api()
                 .get(SETTINGS.API.BLOGS)
-                .expect(HttpStatus.OK, [newBlog2]);
+                .expect(HttpStatus.OK, {
+                    pageCount: 1,
+                    page: 1,
+                    pageSize: 10,
+                    totalCount: 1,
+                    items: [newBlog2]
+                });
         });
     });
 
