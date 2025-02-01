@@ -5,11 +5,13 @@ import {
     blogDescriptionValidator,
     blogNameValidator,
     blogWebsiteUrlValidator,
-    paramIdValidator, postBlogIdValidator, postContentValidator, postShortDescriptionValidator, postTitleValidator
+    paramIdValidator,
+    postContentValidator,
+    postShortDescriptionValidator,
+    postTitleValidator
 } from '../middleware/input-validators';
 import {errorsResultMiddleware} from '../middleware/errors-result-middleware';
 import {authValidator} from '../middleware/auth-validator';
-import {BlogDBType} from '../types/blog-types';
 import {postService} from '../service/post-service';
 
 export const blogRouter = express.Router();

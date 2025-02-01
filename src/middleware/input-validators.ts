@@ -1,7 +1,6 @@
 import {body, param} from 'express-validator';
-import {blogCollection, blogRepository} from '../repositories/blog-repository';
+import {blogRepository} from '../repositories/blog-repository';
 import {ObjectId} from 'mongodb';
-import {FgRed, log} from '../../__tests__/logHelper';
 
 export const paramIdValidator = param('id')
     .notEmpty()

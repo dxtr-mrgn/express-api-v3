@@ -11,7 +11,7 @@ export const invalidTitlePost = {
                 message: 'title should be string',
                 field: 'title'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
 };
@@ -28,7 +28,7 @@ export const invalidDescPost = {
                 message: 'shortDescription should be string',
                 field: 'shortDescription'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
 };
@@ -45,7 +45,7 @@ export const invalidContentPost = {
                 message: 'content should be string',
                 field: 'content'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
 };
@@ -77,7 +77,7 @@ export const missingTitlePost = {
                 message: 'title is required',
                 field: 'title'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
 };
@@ -93,7 +93,7 @@ export const missingDescPost = {
                 message: 'shortDescription is required',
                 field: 'shortDescription'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
 };
@@ -109,7 +109,7 @@ export const missingContentPost = {
                 message: 'content is required',
                 field: 'content'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
 };
@@ -164,10 +164,10 @@ export const tooLongTitlePost = {
                 message: 'title should contain 1 - 30 characters',
                 field: 'title'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
-}
+};
 export const tooLongDescPost = {
     payload: {
         'title': 'valid title',
@@ -181,10 +181,10 @@ export const tooLongDescPost = {
                 message: 'shortDescription should contain 1 - 100 characters',
                 field: 'shortDescription'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
-}
+};
 export const tooLongContentPost = {
     payload: {
         'title': 'valid title',
@@ -198,10 +198,10 @@ export const tooLongContentPost = {
                 message: 'content should contain 1 - 1000 characters',
                 field: 'content'
             },
-            { message: 'blogId is invalid', field: 'blogId' }
+            {message: 'blogId is invalid', field: 'blogId'}
         ]
     }
-}
+};
 export const validPost = {
     payload: {
         'title': 'valid title',
@@ -209,7 +209,7 @@ export const validPost = {
         'content': 'valid content',
         'blogId': 'valid blogId',
     }
-}
+};
 
 export const defaultPostResponse = {
     pageCount: 0,

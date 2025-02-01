@@ -30,7 +30,7 @@ export const postService = {
         pageNumber: number,
         pageSize: number,
     }) {
-        const { blogId, sortBy, sortDirection, pageNumber, pageSize } = filterDto;
+        const {blogId, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
 
         const posts = await postRepository.findPosts({
             blogId,
@@ -40,11 +40,11 @@ export const postService = {
             pageSize
         });
 
-        let blogIdFilter = {}
+        let blogIdFilter = {};
         if (blogId) {
             blogIdFilter = {blogId};
         }
-        const blogCount = await postRepository.getPostsCount(blogIdFilter)
+        const blogCount = await postRepository.getPostsCount(blogIdFilter);
 
         return {
             pageCount: Math.ceil(blogCount / pageSize),
@@ -52,7 +52,7 @@ export const postService = {
             pageSize: pageSize,
             totalCount: blogCount,
             items: posts
-        }
+        };
 
     },
     async findPostById(id: string): Promise<any> {

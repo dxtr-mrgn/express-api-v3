@@ -19,7 +19,7 @@ import {
 } from './datasets/posts';
 import {validBlog} from './datasets/blogs';
 import {client} from '../src/db/mongodb';
-import {BgGreen, FgCyan, FgGreen, FgRed, log} from './logHelper';
+import {FgCyan, FgRed, log} from './logHelper';
 
 const api = () => request(app);
 

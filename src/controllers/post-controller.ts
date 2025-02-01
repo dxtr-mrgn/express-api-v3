@@ -10,7 +10,6 @@ import {
 } from '../middleware/input-validators';
 import {authValidator} from '../middleware/auth-validator';
 import {postService} from '../service/post-service';
-import {blogService} from '../service/blog-service';
 
 export const postRouter = express.Router();
 
@@ -18,8 +17,8 @@ const postController = {
     async getPosts(req: Request, res: Response): Promise<void> {
         let sortBy = req.query.sortBy ? req.query.sortBy as string : 'createdAt';
         let sortDirection = req.query.sortDirection && req.query.sortDirection === 'asc' ? 'asc' : 'desc';
-        let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number: 1;
-        let pageSize = req.query.pageSize ? +req.query.pageSize as number: 10;
+        let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number : 1;
+        let pageSize = req.query.pageSize ? +req.query.pageSize as number : 10;
 
         const posts = await postService.findPosts({sortBy, sortDirection, pageNumber, pageSize,});
         res.status(HttpStatus.OK).send(posts);

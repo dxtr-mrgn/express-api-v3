@@ -1,5 +1,4 @@
-import {BlogConstructType, BlogDBType, BlogInputType} from '../types/blog-types';
-import {ObjectId} from 'mongodb';
+import {BlogConstructType, BlogInputType} from '../types/blog-types';
 import {blogRepository} from '../repositories/blog-repository';
 
 export const blogService = {
@@ -26,7 +25,7 @@ export const blogService = {
         pageNumber: number,
         pageSize: number,
     }) {
-        const { searchNameTerm, sortBy, sortDirection, pageNumber, pageSize } = filterDto;
+        const {searchNameTerm, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
 
         const blogs = await blogRepository.findBlogs({
             searchNameTerm,
@@ -35,7 +34,7 @@ export const blogService = {
             pageNumber,
             pageSize
         });
-        const blogCount = await blogRepository.getBlogsCount(searchNameTerm)
+        const blogCount = await blogRepository.getBlogsCount(searchNameTerm);
 
         return {
             pageCount: Math.ceil(blogCount / pageSize),
@@ -44,7 +43,7 @@ export const blogService = {
             totalCount: blogCount,
             items: blogs,
 
-        }
+        };
 
     },
     async findBlogsById(id: string): Promise<any> {

@@ -1,4 +1,4 @@
-import {BlogConstructType, BlogDBType, BlogInputType} from '../types/blog-types';
+import {BlogConstructType, BlogInputType} from '../types/blog-types';
 import {client} from '../db/mongodb';
 import {DeleteResult, ObjectId} from 'mongodb';
 import {SETTINGS} from '../settings';
@@ -51,10 +51,10 @@ export const blogRepository = {
             filter.name = RegExp(searchNameTerm, 'i');
         }
 
-        aggregateFilter.push({$match: filter})
-        aggregateFilter.push({$sort: {[sortBy]: sortDirection === 'asc' ? 1 : -1}})
-        aggregateFilter.push({$skip: (pageNumber - 1) * pageSize})
-        aggregateFilter.push({$limit: pageSize})
+        aggregateFilter.push({$match: filter});
+        aggregateFilter.push({$sort: {[sortBy]: sortDirection === 'asc' ? 1 : -1}});
+        aggregateFilter.push({$skip: (pageNumber - 1) * pageSize});
+        aggregateFilter.push({$limit: pageSize});
 
         return blogRepository.getBlogs(aggregateFilter);
     },
@@ -68,7 +68,7 @@ export const blogRepository = {
         return blogCollection.countDocuments(filter);
     },
     async findBlogsById(id: string): Promise<any> {
-        return (await blogRepository.getBlogs([{$match: {_id: new ObjectId(id)}}]))[0]
+        return (await blogRepository.getBlogs([{$match: {_id: new ObjectId(id)}}]))[0];
     },
     async deleteBlog(id: string): Promise<number> {
         const res: DeleteResult = await blogCollection.deleteOne({id});

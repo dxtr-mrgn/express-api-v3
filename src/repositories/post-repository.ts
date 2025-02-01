@@ -1,7 +1,6 @@
-import {PostDBType, PostInputType} from '../types/post-types';
+import {PostInputType} from '../types/post-types';
 import {client} from '../db/mongodb';
 import {ObjectId} from 'mongodb';
-import {blogCollection} from './blog-repository';
 import {SETTINGS} from '../settings';
 
 const postCollection = client.db(SETTINGS.DB_NAME).collection('posts');
@@ -9,7 +8,7 @@ console.log('MongoDB Name: ' + SETTINGS.DB_NAME);
 
 export const postRepository = {
     async getPosts(filter?: any) {
-        const posts =  await postCollection.aggregate([
+        const posts = await postCollection.aggregate([
             ...filter,
             {
                 $project: {
@@ -45,18 +44,18 @@ export const postRepository = {
         pageNumber: number,
         pageSize: number
     }) {
-        let blogIdFilter = {}
+        let blogIdFilter = {};
         const aggregateFilter: any = [];
-        const { blogId, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
+        const {blogId, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
 
         if (blogId) {
             blogIdFilter = {blogId};
         }
 
-        aggregateFilter.push({$match: blogIdFilter})
-        aggregateFilter.push({$sort: {[sortBy]: sortDirection === 'asc' ? 1 : -1}})
-        aggregateFilter.push({$skip: (pageNumber - 1) * pageSize})
-        aggregateFilter.push({$limit: pageSize})
+        aggregateFilter.push({$match: blogIdFilter});
+        aggregateFilter.push({$sort: {[sortBy]: sortDirection === 'asc' ? 1 : -1}});
+        aggregateFilter.push({$skip: (pageNumber - 1) * pageSize});
+        aggregateFilter.push({$limit: pageSize});
 
         return postRepository.getPosts(aggregateFilter);
     },
@@ -64,7 +63,7 @@ export const postRepository = {
         return postCollection.countDocuments(blogIdFilter);
     },
     async findPostById(id: string): Promise<any> {
-        return (await postRepository.getPosts([{$match: {_id: new ObjectId(id)}}]))[0]
+        return (await postRepository.getPosts([{$match: {_id: new ObjectId(id)}}]))[0];
     },
     async deletePost(id: string) {
         const res = await postCollection.deleteOne({_id: new ObjectId(id)});
