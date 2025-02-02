@@ -71,7 +71,7 @@ export const blogRepository = {
         return (await blogRepository.getBlogs([{$match: {_id: new ObjectId(id)}}]))[0];
     },
     async deleteBlog(id: string): Promise<number> {
-        const res: DeleteResult = await blogCollection.deleteOne({id});
+        const res: DeleteResult = await blogCollection.deleteOne({_id: new ObjectId(id)});
 
         return res.deletedCount;
     }
