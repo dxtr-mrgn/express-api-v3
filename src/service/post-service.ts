@@ -6,11 +6,11 @@ export const postService = {
     async deleteAllPosts() {
         await postRepository.deleteAllPosts();
     },
-    async createPost(postInput: PostInputType) {
-        const blog: any = await blogRepository.findBlogsById(postInput.blogId);
+    async createPost(postInput: PostInputType, id?: string) {
+        const blogId = id ? id : postInput.blogId;
+        const blog: any = await blogRepository.findBlogsById(blogId);
 
         const newPost: PostDBType = {
-            id: Date.now() + Math.random().toString(),
             title: postInput.title,
             shortDescription: postInput.shortDescription,
             content: postInput.content,
@@ -47,7 +47,7 @@ export const postService = {
         const blogCount = await postRepository.getPostsCount(blogIdFilter);
 
         return {
-            pageCount: Math.ceil(blogCount / pageSize),
+            pagesCount: Math.ceil(blogCount / pageSize),
             page: pageNumber,
             pageSize: pageSize,
             totalCount: blogCount,

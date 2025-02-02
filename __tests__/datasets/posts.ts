@@ -212,7 +212,7 @@ export const validPost = {
 };
 
 export const defaultPostResponse = {
-    pageCount: 0,
+    pagesCount: 0,
     page: 1,
     pageSize: 10,
     totalCount: 0

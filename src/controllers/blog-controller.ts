@@ -41,7 +41,7 @@ const blogController = {
         }
 
         const posts = await postService.findPosts({blogId, sortBy, sortDirection, pageNumber, pageSize,});
-        res.status(HttpStatus.OK).send(posts);
+        if (posts) res.status(HttpStatus.OK).send(posts);
     },
     async getBlogById(req: Request, res: Response): Promise<void> {
         const blog: any = await blogService.findBlogsById(req.params.id);
@@ -56,13 +56,11 @@ const blogController = {
         if (blog) res.status(HttpStatus.CREATED).send(blog);
     },
     async createPostByBlogId(req: Request, res: Response): Promise<void> {
-        const blogId = req.params.id;
-
         const blog: any = await blogService.findBlogsById(req.params.id);
         if (!blog) {
             res.sendStatus(HttpStatus.NOT_FOUND);
         }
-        req.body.blogId = blogId;
+        req.body.blogId = req.params.id;
         const post = await postService.createPost(req.body);
         if (post) res.status(HttpStatus.CREATED).send(post);
     },

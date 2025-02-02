@@ -37,7 +37,7 @@ export const blogService = {
         const blogCount = await blogRepository.getBlogsCount(searchNameTerm);
 
         return {
-            pageCount: Math.ceil(blogCount / pageSize),
+            pagesCount: Math.ceil(blogCount / pageSize),
             page: pageNumber,
             pageSize: pageSize,
             totalCount: blogCount,

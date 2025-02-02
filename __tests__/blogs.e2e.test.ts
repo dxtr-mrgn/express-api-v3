@@ -202,7 +202,7 @@ describe('Blogs', () => {
             await api()
                 .get(SETTINGS.API.BLOGS)
                 .expect(HttpStatus.OK, {
-                    pageCount: 1,
+                    pagesCount: 1,
                     page: 1,
                     pageSize: 10,
                     totalCount: 2,
@@ -398,7 +398,7 @@ describe('Blogs', () => {
             await api()
                 .get(SETTINGS.API.BLOGS)
                 .expect(HttpStatus.OK, {
-                    pageCount: 1,
+                    pagesCount: 1,
                     page: 1,
                     pageSize: 10,
                     totalCount: 2,
@@ -445,7 +445,7 @@ describe('Blogs', () => {
             await api()
                 .get(SETTINGS.API.BLOGS)
                 .expect(HttpStatus.OK, {
-                    pageCount: 1,
+                    pagesCount: 1,
                     page: 1,
                     pageSize: 10,
                     totalCount: 1,
