@@ -13,6 +13,7 @@ import {
 import {errorsResultMiddleware} from '../middleware/errors-result-middleware';
 import {authValidator} from '../middleware/auth-validator';
 import {postService} from '../service/post-service';
+import {blogRepository} from '../repositories/blog-repository';
 
 export const blogRouter = express.Router();
 
@@ -29,19 +30,21 @@ const blogController = {
         res.status(HttpStatus.OK).send(blogs);
     },
     async getPostByBlogId(req: Request, res: Response): Promise<void> {
-        let sortBy = req.query.sortBy ? req.query.sortBy as string : 'createdAt';
-        let sortDirection = req.query.sortDirection && req.query.sortDirection === 'asc' ? 'asc' : 'desc';
-        let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number : 1;
-        let pageSize = req.query.pageSize ? +req.query.pageSize as number : 10;
         const blogId = req.params.id;
-
-        const blog: any = await blogService.findBlogsById(req.params.id);
+        const blog: any = await blogService.findBlogsById(blogId);
         if (!blog) {
             res.sendStatus(HttpStatus.NOT_FOUND);
-        }
+        } else {
 
-        const posts = await postService.findPosts({blogId, sortBy, sortDirection, pageNumber, pageSize,});
-        if (posts) res.status(HttpStatus.OK).send(posts);
+            let sortBy = req.query.sortBy ? req.query.sortBy as string : 'createdAt';
+            let sortDirection = req.query.sortDirection && req.query.sortDirection === 'asc' ? 'asc' : 'desc';
+            let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number : 1;
+            let pageSize = req.query.pageSize ? +req.query.pageSize as number : 10;
+
+
+            const posts = await postService.findPosts({blogId, sortBy, sortDirection, pageNumber, pageSize,});
+            if (posts) res.status(HttpStatus.OK).send(posts);
+        }
     },
     async getBlogById(req: Request, res: Response): Promise<void> {
         const blog: any = await blogService.findBlogsById(req.params.id);
@@ -59,10 +62,11 @@ const blogController = {
         const blog: any = await blogService.findBlogsById(req.params.id);
         if (!blog) {
             res.sendStatus(HttpStatus.NOT_FOUND);
+        } else {
+            req.body.blogId = req.params.id;
+            const post = await postService.createPost(req.body);
+            if (post) res.status(HttpStatus.CREATED).send(post);
         }
-        req.body.blogId = req.params.id;
-        const post = await postService.createPost(req.body);
-        if (post) res.status(HttpStatus.CREATED).send(post);
     },
     async updateBlog(req: Request, res: Response): Promise<void> {
         const blog = await blogService.updateBlog(req.params.id, req.body);
