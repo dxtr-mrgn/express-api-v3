@@ -13,7 +13,6 @@ import {
 import {errorsResultMiddleware} from '../middleware/errors-result-middleware';
 import {authValidator} from '../middleware/auth-validator';
 import {postService} from '../service/post-service';
-import {blogRepository} from '../repositories/blog-repository';
 
 export const blogRouter = express.Router();
 

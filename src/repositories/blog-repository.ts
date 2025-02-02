@@ -62,7 +62,7 @@ export const blogRepository = {
         const filter: any = {};
 
         if (searchNameTerm) {
-            filter.title = {$regex: searchNameTerm, $options: 'i'};
+            filter.name = RegExp(searchNameTerm, 'i');
 
         }
         return blogCollection.countDocuments(filter);
