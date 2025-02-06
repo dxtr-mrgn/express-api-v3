@@ -1,6 +1,6 @@
 import {PostDBType, PostInputType} from '../types/post-types';
-import {postRepository} from '../repositories/post-repository';
-import {blogRepository} from '../repositories/blog-repository';
+import {postRepository} from '../repository/post-repository';
+import {blogRepository} from '../../blogs/repository/blog-repository';
 
 export const postService = {
     async deleteAllPosts() {

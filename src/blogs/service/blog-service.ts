@@ -1,5 +1,5 @@
 import {BlogConstructType, BlogInputType} from '../types/blog-types';
-import {blogRepository} from '../repositories/blog-repository';
+import {blogRepository} from '../repository/blog-repository';
 
 export const blogService = {
     async deleteAllBlogs() {

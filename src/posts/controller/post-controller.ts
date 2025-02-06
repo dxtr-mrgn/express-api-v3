@@ -1,26 +1,24 @@
 import express, {Request, Response} from 'express';
-import {HttpStatus} from '../settings';
-import {errorsResultMiddleware} from '../middleware/errors-result-middleware';
+import {HttpStatus} from '../../settings';
+import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
 import {
     paramIdValidator,
     postBlogIdValidator,
     postContentValidator,
     postShortDescriptionValidator,
     postTitleValidator
-} from '../middleware/input-validators';
-import {authValidator} from '../middleware/auth-validator';
+} from '../../middleware/input-validators';
+import {authValidator} from '../../middleware/auth-validator';
 import {postService} from '../service/post-service';
+import {commonQueryParams} from '../../blogs/controller/query-params';
 
 export const postRouter = express.Router();
 
 const postController = {
     async getPosts(req: Request, res: Response): Promise<void> {
-        let sortBy = req.query.sortBy ? req.query.sortBy as string : 'createdAt';
-        let sortDirection = req.query.sortDirection && req.query.sortDirection === 'asc' ? 'asc' : 'desc';
-        let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number : 1;
-        let pageSize = req.query.pageSize ? +req.query.pageSize as number : 10;
+        const queryParams = commonQueryParams(req);
 
-        const posts = await postService.findPosts({sortBy, sortDirection, pageNumber, pageSize,});
+        const posts = await postService.findPosts(queryParams);
         res.status(HttpStatus.OK).send(posts);
     },
     async getPostById(req: Request, res: Response): Promise<void> {

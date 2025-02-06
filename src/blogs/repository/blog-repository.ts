@@ -1,7 +1,7 @@
 import {BlogConstructType, BlogInputType} from '../types/blog-types';
-import {client} from '../db/mongodb';
+import {client} from '../../db/mongodb';
 import {DeleteResult, ObjectId} from 'mongodb';
-import {SETTINGS} from '../settings';
+import {SETTINGS} from '../../settings';
 
 export const blogCollection = client.db(SETTINGS.DB_NAME).collection('blogs');
 console.log('MongoDB Name: ' + SETTINGS.DB_NAME);

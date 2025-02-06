@@ -1,7 +1,7 @@
 import {PostInputType} from '../types/post-types';
-import {client} from '../db/mongodb';
+import {client} from '../../db/mongodb';
 import {ObjectId} from 'mongodb';
-import {SETTINGS} from '../settings';
+import {SETTINGS} from '../../settings';
 
 const postCollection = client.db(SETTINGS.DB_NAME).collection('posts');
 console.log('MongoDB Name: ' + SETTINGS.DB_NAME);

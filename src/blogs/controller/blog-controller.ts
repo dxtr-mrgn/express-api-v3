@@ -1,6 +1,6 @@
 import express, {Request, Response} from 'express';
 import {blogService} from '../service/blog-service';
-import {HttpStatus} from '../settings';
+import {HttpStatus} from '../../settings';
 import {
     blogDescriptionValidator,
     blogNameValidator,
@@ -9,23 +9,20 @@ import {
     postContentValidator,
     postShortDescriptionValidator,
     postTitleValidator
-} from '../middleware/input-validators';
-import {errorsResultMiddleware} from '../middleware/errors-result-middleware';
-import {authValidator} from '../middleware/auth-validator';
-import {postService} from '../service/post-service';
+} from '../../middleware/input-validators';
+import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
+import {authValidator} from '../../middleware/auth-validator';
+import {postService} from '../../posts/service/post-service';
+import {blogQueryParams, commonQueryParams, userQueryParams} from './query-params';
 
 export const blogRouter = express.Router();
 
 const blogController = {
     async getBlogs(req: Request, res: Response): Promise<void> {
-        let searchNameTerm = req.query.searchNameTerm ? req.query.searchNameTerm as string : null;
-        let sortBy = req.query.sortBy ? req.query.sortBy as string : 'createdAt';
-        let sortDirection = req.query.sortDirection && req.query.sortDirection === 'asc' ? 'asc' : 'desc';
-        let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number : 1;
-        let pageSize = req.query.pageSize ? +req.query.pageSize as number : 10;
+        const queryParams = {...blogQueryParams(req), ...commonQueryParams(req)};
 
         const blogs =
-            await blogService.findBlogs({searchNameTerm, sortBy, sortDirection, pageNumber, pageSize,});
+            await blogService.findBlogs(queryParams);
         res.status(HttpStatus.OK).send(blogs);
     },
     async getPostByBlogId(req: Request, res: Response): Promise<void> {
@@ -35,13 +32,10 @@ const blogController = {
             res.sendStatus(HttpStatus.NOT_FOUND);
         } else {
 
-            let sortBy = req.query.sortBy ? req.query.sortBy as string : 'createdAt';
-            let sortDirection = req.query.sortDirection && req.query.sortDirection === 'asc' ? 'asc' : 'desc';
-            let pageNumber = req.query.pageNumber ? +req.query.pageNumber as number : 1;
-            let pageSize = req.query.pageSize ? +req.query.pageSize as number : 10;
+            const queryParams = {blogId, ...commonQueryParams(req)};
 
 
-            const posts = await postService.findPosts({blogId, sortBy, sortDirection, pageNumber, pageSize,});
+            const posts = await postService.findPosts(queryParams);
             if (posts) res.status(HttpStatus.OK).send(posts);
         }
     },

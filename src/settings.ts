@@ -7,6 +7,7 @@ export const SETTINGS = {
     API: {
         BLOGS: '/blogs',
         POSTS: '/posts',
+        USERS: '/users',
         ALL_DATA: '/testing/all-data'
     },
     LOGIN: 'admin',
