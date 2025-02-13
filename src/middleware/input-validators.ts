@@ -2,14 +2,6 @@ import {body, param} from 'express-validator';
 import {blogRepository} from '../blogs/repository/blog-repository';
 import {ObjectId} from 'mongodb';
 
-export const paramIdValidator = param('id')
-    .notEmpty()
-    .custom(value => {
-        if (!ObjectId.isValid(value)) {
-            throw new Error('Id should be valid');
-        }
-        return true;
-    });
 
 export const blogNameValidator = body('name')
     .trim()

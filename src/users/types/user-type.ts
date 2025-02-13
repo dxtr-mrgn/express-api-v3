@@ -6,7 +6,8 @@ export type UserInputType = {
 
 export type UserConstructType = {
     login: string,
-    password: string,
+    passwordHash: string,
+    passwordSalt: string,
     email: string,
     createdAt: string
 }
@@ -15,7 +16,8 @@ export type UserConstructType = {
 export type UserDBType = {
     id: string,
     login: string,
-    password: string,
+    passwordHash: string,
+    passwordSalt: string,
     email: string,
     createdAt: string
 }
@@ -27,3 +29,16 @@ export type UsersDBType = {
     totalCount: number,
     items: UserDBType[]
 }
+
+export type LoginUser = {
+    loginOrEmail: string,
+    password: string,
+}
+
+export type errorMessage = {
+    field: string,
+    message: string
+}
+export type NotUniqueError = {
+    errorsMessages: errorMessage[]
+};

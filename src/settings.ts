@@ -8,6 +8,7 @@ export const SETTINGS = {
         BLOGS: '/blogs',
         POSTS: '/posts',
         USERS: '/users',
+        AUTH: '/auth/login',
         ALL_DATA: '/testing/all-data'
     },
     LOGIN: 'admin',

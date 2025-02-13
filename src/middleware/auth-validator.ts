@@ -14,3 +14,34 @@ export const authValidator = (req: Request, res: Response, next: NextFunction) =
     }
     next();
 };
+
+import {body} from 'express-validator';
+
+export const loginOrEmailValidator = body('loginOrEmail')
+    .trim()
+    .notEmpty().withMessage('loginOrEmail is required')
+    .isString().withMessage('loginOrEmail should be string')
+    .custom(value => {
+        if (typeof value !== 'string') {
+            throw new Error('loginOrEmail should be string');
+        }
+        if (!isNaN(Number(value))) {
+            throw new Error('loginOrEmail should be string');
+        }
+        return true;
+    });
+
+
+export const passwordValidator = body('password')
+    .trim()
+    .notEmpty().withMessage('password is required')
+    .isString().withMessage('password should be string')
+    .custom(value => {
+        if (typeof value !== 'string') {
+            throw new Error('password should be string');
+        }
+        if (!isNaN(Number(value))) {
+            throw new Error('password should be string');
+        }
+        return true;
+    });

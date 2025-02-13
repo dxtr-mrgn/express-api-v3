@@ -1,7 +1,14 @@
 import express, {Request, Response} from 'express';
 import {HttpStatus} from '../../settings';
-import {commonQueryParams, userQueryParams} from '../../blogs/controller/query-params';
+import {commonQueryParams, userQueryParams} from '../../common/query-params';
 import {userService} from '../service/user-service';
+import {
+    createEmailValidator,
+    createLoginValidator,
+    createPasswordValidator
+} from '../validator-middleware/input-validator';
+import {paramIdValidator} from '../../common/input-validator';
+import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
 
 export const userRouter = express.Router();
 
@@ -14,6 +21,7 @@ const userController = {
         res.status(HttpStatus.OK).send(users);
     },
     async createUser(req: Request, res: Response): Promise<void> {
+
         const user = await userService.createUser(req.body);
         if (user) res.status(HttpStatus.CREATED).send(user);
     },
@@ -28,6 +36,12 @@ const userController = {
 };
 userRouter.get('/', userController.getUsers);
 userRouter.post('/',
+    createLoginValidator,
+    createPasswordValidator,
+    createEmailValidator,
+    errorsResultMiddleware,
     userController.createUser);
 userRouter.delete('/:id',
+    paramIdValidator,
+    errorsResultMiddleware,
     userController.deleteUser);

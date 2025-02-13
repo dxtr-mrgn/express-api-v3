@@ -6,6 +6,7 @@ import {blogService} from './blogs/service/blog-service';
 import {postService} from './posts/service/post-service';
 import {userService} from './users/service/user-service';
 import {userRouter} from './users/controller/user-controller';
+import {authRouter} from './users/controller/auth-controller';
 
 
 export const app = express();
@@ -26,3 +27,4 @@ app.delete(SETTINGS.API.ALL_DATA, async (req: Request, res: Response): Promise<v
 app.use(SETTINGS.API.POSTS, postRouter);
 app.use(SETTINGS.API.BLOGS, blogRouter);
 app.use(SETTINGS.API.USERS, userRouter);
+app.use(SETTINGS.API.AUTH, authRouter);

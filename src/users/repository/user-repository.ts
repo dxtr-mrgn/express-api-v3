@@ -23,12 +23,21 @@ export const userRepository = {
 
         return users;
     },
+    async findByLoginOrEmail(loginOrEmail: string) {
+        return await this.getUsers({$match: {$or: [{login: loginOrEmail}, {email: loginOrEmail}]}})
+    },
+    async findByLogin(login: string) {
+        return await this.getUsers({$match: {login: login}})
+    },
+    async findByEmail(email: string) {
+        return await this.getUsers({$match: {email: email}})
+    },
     async deleteAllUsers() {
         await userCollection.deleteMany({});
     },
     async createUser(newUser: UserConstructType): Promise<any> {
         const res = await userCollection.insertOne(newUser);
-        return await userRepository.getUsers([{$match: {_id: new ObjectId(res.insertedId)}}]);
+        return await this.getUsers([{$match: {_id: new ObjectId(res.insertedId)}}]);
     },
     async findUsers(filterDto: {
         searchLoginTerm: string | null,
@@ -61,7 +70,7 @@ export const userRepository = {
         aggregateFilter.push({$skip: (pageNumber - 1) * pageSize});
         aggregateFilter.push({$limit: pageSize});
 
-        return userRepository.getUsers(aggregateFilter);
+        return this.getUsers(aggregateFilter);
     },
     async getUsersCount(searchLoginTerm: string | null, searchEmailTerm: string | null): Promise<number> {
         const filter: any = {};

@@ -13,6 +13,7 @@
   "dependencies": {
     "@types/jest": "^29.5.14",
     "@types/supertest": "^6.0.2",
+    "bcrypt": "^5.1.1",
     "chalk": "^4.1.2",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
@@ -22,6 +23,7 @@
     "ts-jest": "^29.2.5"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/chalk": "^0.4.31",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
