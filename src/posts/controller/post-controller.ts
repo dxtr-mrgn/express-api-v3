@@ -10,6 +10,7 @@ import {
 import {postService} from '../service/post-service';
 import {commonQueryParams} from '../../common/query-params';
 import {paramIdValidator} from '../../common/input-validator';
+import {authValidator} from '../../middleware/auth-validator';
 
 export const postRouter = express.Router();
 
@@ -51,6 +52,7 @@ const postController = {
 };
 postRouter.get('/', postController.getPosts);
 postRouter.post('/',
+    authValidator,
     postTitleValidator,
     postShortDescriptionValidator,
     postContentValidator,
@@ -62,6 +64,7 @@ postRouter.get('/:id',
     errorsResultMiddleware,
     postController.getPostById);
 postRouter.put('/:id',
+    authValidator,
     paramIdValidator,
     postTitleValidator,
     postShortDescriptionValidator,
@@ -70,6 +73,7 @@ postRouter.put('/:id',
     errorsResultMiddleware,
     postController.updatePost);
 postRouter.delete('/:id',
+    authValidator,
     paramIdValidator,
     errorsResultMiddleware,
     postController.deletePost);

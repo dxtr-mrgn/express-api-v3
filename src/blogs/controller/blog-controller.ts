@@ -13,6 +13,7 @@ import {errorsResultMiddleware} from '../../middleware/errors-result-middleware'
 import {postService} from '../../posts/service/post-service';
 import {blogQueryParams, commonQueryParams} from '../../common/query-params';
 import {paramIdValidator} from '../../common/input-validator';
+import {authValidator} from '../../middleware/auth-validator';
 
 export const blogRouter = express.Router();
 
@@ -79,6 +80,7 @@ const blogController = {
 };
 blogRouter.get('/', blogController.getBlogs);
 blogRouter.post('/',
+    authValidator,
     blogNameValidator,
     blogDescriptionValidator,
     blogWebsiteUrlValidator,
@@ -93,6 +95,7 @@ blogRouter.get('/:id/posts',
     errorsResultMiddleware,
     blogController.getPostByBlogId);
 blogRouter.post('/:id/posts',
+    authValidator,
     paramIdValidator,
     postTitleValidator,
     postShortDescriptionValidator,
@@ -100,6 +103,7 @@ blogRouter.post('/:id/posts',
     errorsResultMiddleware,
     blogController.createPostByBlogId);
 blogRouter.put('/:id',
+    authValidator,
     paramIdValidator,
     blogNameValidator,
     blogDescriptionValidator,
@@ -107,6 +111,7 @@ blogRouter.put('/:id',
     errorsResultMiddleware,
     blogController.updateBlog);
 blogRouter.delete('/:id',
+    authValidator,
     paramIdValidator,
     errorsResultMiddleware,
     blogController.deleteBlog);

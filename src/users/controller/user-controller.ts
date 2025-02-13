@@ -9,6 +9,7 @@ import {
 } from '../validator-middleware/input-validator';
 import {paramIdValidator} from '../../common/input-validator';
 import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
+import {authValidator} from '../../middleware/auth-validator';
 
 export const userRouter = express.Router();
 
@@ -34,14 +35,18 @@ const userController = {
         }
     },
 };
-userRouter.get('/', userController.getUsers);
+userRouter.get('/',
+    authValidator,
+    userController.getUsers);
 userRouter.post('/',
+    authValidator,
     createLoginValidator,
     createPasswordValidator,
     createEmailValidator,
     errorsResultMiddleware,
     userController.createUser);
 userRouter.delete('/:id',
+    authValidator,
     paramIdValidator,
     errorsResultMiddleware,
     userController.deleteUser);
