@@ -38,6 +38,8 @@ export const userRepository = {
                     id: '$_id',
                     login: 1,
                     email: 1,
+                    passwordHash: 1,
+                    passwordSalt: 1,
                     createdAt: 1,
                 }
             }]).toArray();
