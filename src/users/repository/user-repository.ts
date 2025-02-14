@@ -21,7 +21,7 @@ export const userRepository = {
         return res.deletedCount;
     },
     async findByLoginOrEmail(loginOrEmail: string) {
-        return await this.getUsers({$match: {$or: [{login: loginOrEmail}, {email: loginOrEmail}]}})
+        return (await this.getUsers({$match: {$or: [{login: loginOrEmail}, {email: loginOrEmail}]}}))[0]
     },
     async findByLogin(login: string) {
         return await this.getUsers({$match: {login: login}})
