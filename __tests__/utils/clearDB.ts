@@ -27,6 +27,7 @@ export const clearDB = async (): Promise<void> => {
         });
     await api()
         .get(SETTINGS.API.USERS)
+        .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
         .expect(HttpStatus.OK, {
             ...defaultUserResponse,
             items: []

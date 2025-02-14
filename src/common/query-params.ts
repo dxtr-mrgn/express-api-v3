@@ -15,8 +15,8 @@ export const blogQueryParams = (req: Request) => {
 };
 
 export const userQueryParams = (req: Request) => {
-    const searchLoginTerm = req.query.searchLoginTerm ? req.query.searchLoginTerm as string : null;
-    const searchEmailTerm = req.query.searchEmailTerm ? req.query.searchEmailTerm as string : null;
+    const searchLoginTerm = req.query.searchLoginTerm ? req.query.searchLoginTerm as string : '';
+    const searchEmailTerm = req.query.searchEmailTerm ? req.query.searchEmailTerm as string : '';
 
     return {searchLoginTerm, searchEmailTerm};
 
