@@ -10,6 +10,8 @@ import {
 import {paramIdValidator} from '../../common/input-validator';
 import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
 import {authValidator} from '../../middleware/auth-validator';
+import {userQwRepository} from '../repository/user.qwery.repository';
+import {ResultObj} from '../../common/types';
 
 export const userRouter = express.Router();
 
@@ -18,13 +20,17 @@ const userController = {
         const queryParams = {...userQueryParams(req), ...commonQueryParams(req)};
 
         const users =
-            await userService.findUsers(queryParams);
+            await userQwRepository.findUsers(queryParams);
         res.status(HttpStatus.OK).send(users);
     },
     async createUser(req: Request, res: Response): Promise<void> {
-
-        const user = await userService.createUser(req.body);
-        if (user) res.status(HttpStatus.CREATED).send(user);
+        const result: ResultObj = await userService.createUser(req.body);
+        if (result.status === 'success') {
+            const user = await userQwRepository.findUserById(result.id!);
+            res.status(HttpStatus.CREATED).send(user);
+        } else {
+            res.status(HttpStatus.BAD_REQUEST).send(result.error);
+        }
     },
     async deleteUser(req: Request, res: Response): Promise<void> {
         const user = await userService.deleteUser(req.params.id);

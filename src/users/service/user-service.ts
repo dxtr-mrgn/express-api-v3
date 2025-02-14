@@ -1,6 +1,7 @@
 import {userRepository} from '../repository/user-repository';
-import {NotUniqueError, UserConstructType, UserDBType, UserInputType, UsersDBType} from '../types/user-type';
+import {UserConstructType, UserInputType} from '../types/user-type';
 import bcrypt from 'bcrypt';
+import {ResultObj} from '../../common/types';
 
 export const userService = {
     async deleteAllUsers() {
@@ -9,17 +10,23 @@ export const userService = {
     errorMessage(field: string) {
         return {
             errorsMessages: [{field: field, message: field + ' should be unique'}]
-        }
+        };
     },
-    async createUser(userInput: UserInputType): Promise<UserDBType | NotUniqueError> {
-        // const existLoginUser = await userRepository.findByLogin(userInput.login);
-        // if (existLoginUser) {
-        //     return this.errorMessage('login')
-        // }
-        // const existEmailUser = await userRepository.findByEmail(userInput.email);
-        // if (existEmailUser) {
-        //     return this.errorMessage('email')
-        // }
+    async createUser(userInput: UserInputType): Promise<ResultObj> {
+        const existLoginUser = await userRepository.findByLogin(userInput.login);
+        if (existLoginUser.length !== 0) {
+            return {
+                status: 'error',
+                error: this.errorMessage('login')
+            };
+        }
+        const existEmailUser = await userRepository.findByEmail(userInput.email);
+        if (existEmailUser.length !== 0) {
+            return {
+                status: 'error',
+                error: this.errorMessage('email')
+            };
+        }
 
         const passwordSalt = await bcrypt.genSalt(10);
         const passwordHash = await this._generateHash(userInput.password, passwordSalt);
@@ -31,7 +38,11 @@ export const userService = {
             email: userInput.email,
             createdAt: new Date().toISOString()
         };
-        return userRepository.createUser(newUser);
+        const userId: string = await userRepository.createUser(newUser);
+        return {
+            status: 'success',
+            id: userId
+        };
     },
     async checkCredentials(loginOrEmail: string, password: string): Promise<boolean> {
         const user = await userRepository.findByLoginOrEmail(loginOrEmail);
@@ -43,35 +54,6 @@ export const userService = {
     },
     async _generateHash(password: string, passwordSalt: string) {
         return await bcrypt.hash(password, passwordSalt);
-    },
-    async findUsers(filterDto: {
-        searchLoginTerm: string | null,
-        searchEmailTerm: string | null,
-        sortBy: string,
-        sortDirection: string,
-        pageNumber: number,
-        pageSize: number,
-    }): Promise<UsersDBType> {
-        const {searchLoginTerm, searchEmailTerm, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
-
-        const blogs: UserDBType[] = await userRepository.findUsers({
-            searchLoginTerm,
-            searchEmailTerm,
-            sortBy,
-            sortDirection,
-            pageNumber,
-            pageSize
-        });
-        const blogCount = await userRepository.getUsersCount(searchLoginTerm, searchEmailTerm);
-
-        return {
-            pagesCount: Math.ceil(blogCount / pageSize),
-            page: pageNumber,
-            pageSize: pageSize,
-            totalCount: blogCount,
-            items: blogs
-        };
-
     },
     async deleteUser(id: string) {
         return userRepository.deleteUser(id);
