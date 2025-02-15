@@ -40,15 +40,16 @@ export const userQwRepository = {
         const aggregateFilter: any = [];
         const {searchLoginTerm, searchEmailTerm, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
 
-        if (searchLoginTerm) {
-            filter.email = RegExp(searchLoginTerm, 'i');
+        if (searchLoginTerm && !searchEmailTerm) {
+            filter.login = RegExp(searchLoginTerm, 'i');
             matchFilter = filter
-        }
-        if (searchEmailTerm) {
+        } else if (searchEmailTerm && !searchLoginTerm) {
+            filter.email = RegExp(searchEmailTerm, 'i');
+            matchFilter = filter
+        } else if (searchEmailTerm && searchEmailTerm) {
             filter.login = RegExp(searchEmailTerm, 'i');
-            if (searchLoginTerm) {
-                matchFilter = {$or: [...filter]};
-            }
+            filter.email = RegExp(searchEmailTerm, 'i');
+            matchFilter = {$or: [...filter]};
         }
 
         aggregateFilter.push({$match: matchFilter});
