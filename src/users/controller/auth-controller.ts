@@ -17,7 +17,7 @@ const authController = {
     },
 };
 
-authRouter.get('/',
+authRouter.post('/',
     loginOrEmailValidator,
     passwordValidator,
     errorsResultMiddleware,
