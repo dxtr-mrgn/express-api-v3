@@ -14,7 +14,7 @@ export const createLoginValidator = body('login')
         return true;
     })
     .isLength({min: 3, max: 10}).withMessage('login should contain 3 - 10 characters')
-    .matches('^[a-zA-Z0-9_-]*$').withMessage('login must match Login pattern');
+    .matches('^[a-zA-Z0-9_-]*$').withMessage('login should match Login pattern');
 
 export const createPasswordValidator = body('password')
     .trim()
@@ -45,5 +45,5 @@ export const createEmailValidator = body('email')
         return true;
     })
     .isLength({min: 1, max: 100}).withMessage('email should contain 1 - 100 characters')
-    .matches('^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$').withMessage('email must match Email pattern');
+    .matches('^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$').withMessage('email should match Email pattern');
 
