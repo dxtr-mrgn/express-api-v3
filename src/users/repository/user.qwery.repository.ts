@@ -28,31 +28,18 @@ export const userQwRepository = {
         return (await this.getUsers([{$match: {_id: new ObjectId(id)}}]))[0];
     },
     async findUsers(filterDto: {
-        searchLoginTerm: string | null,
-        searchEmailTerm: string | null,
+        searchLoginTerm: string,
+        searchEmailTerm: string,
         sortBy: string,
         sortDirection: string,
         pageNumber: number,
         pageSize: number,
     }): Promise<UsersDBType> {
-        const filter: any = {};
-        let matchFilter = {};
         const aggregateFilter: any = [];
         const {searchLoginTerm, searchEmailTerm, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
 
-        if (searchLoginTerm && !searchEmailTerm) {
-            filter.login = RegExp(searchLoginTerm, 'i');
-            matchFilter = filter
-        } else if (searchEmailTerm && !searchLoginTerm) {
-            filter.email = RegExp(searchEmailTerm, 'i');
-            matchFilter = filter
-        } else if (searchEmailTerm && searchEmailTerm) {
-            filter.login = RegExp(searchEmailTerm, 'i');
-            filter.email = RegExp(searchEmailTerm, 'i');
-            matchFilter = {$or: [...filter]};
-        }
-
-        aggregateFilter.push({$match: matchFilter});
+        const filter = this._combineSearchFilter(searchLoginTerm, searchEmailTerm);
+        aggregateFilter.push({$match: filter});
         aggregateFilter.push({$sort: {[sortBy]: sortDirection === 'asc' ? 1 : -1}});
         aggregateFilter.push({$skip: (pageNumber - 1) * pageSize});
         aggregateFilter.push({$limit: pageSize});
@@ -68,15 +55,22 @@ export const userQwRepository = {
             items: users
         };
     },
-    async getUsersCount(searchLoginTerm: string | null, searchEmailTerm: string | null): Promise<number> {
-        const filter: any = {};
+    async getUsersCount(searchLoginTerm: string, searchEmailTerm: string): Promise<number> {
+        const filter = this._combineSearchFilter(searchLoginTerm, searchEmailTerm);
+        return userCollection.countDocuments(filter);
+    },
+    _combineSearchFilter(searchLoginTerm: string, searchEmailTerm: string): any {
+        let matchFilter: any = {$or: new Array()};
 
         if (searchLoginTerm) {
-            filter.email = RegExp(searchLoginTerm, 'i');
+            matchFilter.$or.push({login: RegExp(searchLoginTerm, 'i')});
         }
         if (searchEmailTerm) {
-            filter.login = RegExp(searchEmailTerm, 'i');
+            matchFilter.$or.push({email: RegExp(searchEmailTerm, 'i')});
+        } else if (!searchEmailTerm && !searchLoginTerm) {
+            matchFilter = {}
         }
-        return userCollection.countDocuments(filter);
+
+        return matchFilter;
     }
 };

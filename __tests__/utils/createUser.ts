@@ -10,9 +10,9 @@ function getRandomInt(max: number) {
     return Math.floor(Math.random() * max);
 }
 
-export const createUser = async (): Promise<PostDBType> => {
+export const createUser = async (data?: any): Promise<PostDBType> => {
     const randomLogin = 'a' + (getRandomInt(9) * 100 + getRandomInt(9));
-    const payload = {
+    const payload = data ? data : {
         login: randomLogin,
         password: 'validpassword123',
         email: randomLogin + '@gmail.com'
