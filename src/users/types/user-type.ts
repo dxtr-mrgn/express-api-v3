@@ -22,6 +22,12 @@ export type UserDBType = {
     createdAt: string
 }
 
+export type UserInfoType = {
+    email: string,
+    login: string,
+    userId: string,
+}
+
 export type UsersDBType = {
     pagesCount: number,
     page: number,

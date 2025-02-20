@@ -15,6 +15,7 @@ export const SETTINGS = {
     PASSWORD: 'qwerty',
     DB_URL: process.env.MONGO_URL || 'mongodb://localhost:27017',
     DB_NAME: process.env.DB_NAME || 'test',
+    JWT_SECRET: process.env.JWT_TOKEN || '123',
 };
 
 export const enum HttpStatus {

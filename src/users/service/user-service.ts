@@ -44,12 +44,16 @@ export const userService = {
             id: userId
         };
     },
-    async checkCredentials(loginOrEmail: string, password: string): Promise<boolean> {
+    async checkCredentials(loginOrEmail: string, password: string): Promise<string | null> {
         const user = await userRepository.findByLoginOrEmail(loginOrEmail);
-        if (!user) return false;
+        if (!user) return null;
 
         const passwordHash = await this._generateHash(password, user.passwordSalt);
-        return user.passwordHash === passwordHash;
+        if (user.passwordHash === passwordHash) {
+            return user.id;
+        } else {
+            return null;
+        }
 
     },
     async _generateHash(password: string, passwordSalt: string) {
