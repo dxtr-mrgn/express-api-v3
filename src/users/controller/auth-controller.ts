@@ -21,6 +21,7 @@ const authController = {
         }
     },
     async info(req: Request, res: Response): Promise<void> {
+        // @ts-ignore
         const userInfo: UserInfoType = await userQwRepository.getUserInfo(req.userId)
         res.status(HttpStatus.OK).send(userInfo);
     },
