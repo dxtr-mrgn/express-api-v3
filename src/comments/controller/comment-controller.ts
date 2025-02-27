@@ -41,8 +41,8 @@ export const commentController = {
         const updated: boolean = await commentService.updateComment(req.params.commentId, req.body);
         sendResponse(res, updated ? HttpStatus.NO_CONTENT : HttpStatus.NOT_FOUND);
     },
-    async deleteComment(req: Request, res: Response): Promise<void> {
-        const deleted: boolean = await commentService.deleteComment(req.params.id);
+    async deleteComment(req: AuthRequest<{ commentId: string }>, res: Response): Promise<void> {
+        const deleted: boolean = await commentService.deleteComment(req.params.commentId);
         sendResponse(res, deleted ? HttpStatus.NO_CONTENT : HttpStatus.NOT_FOUND);
     },
 };
