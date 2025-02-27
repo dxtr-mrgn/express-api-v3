@@ -9,8 +9,18 @@ import {
 } from '../../middleware/input-validators';
 import {postService} from '../service/post-service';
 import {commonQueryParams} from '../../common/query-params';
-import {paramIdValidator} from '../../common/input-validator';
+import {paramIdValidator, paramPostIdValidator} from '../../common/input-validator';
 import {authValidator} from '../../middleware/auth-validator';
+import {UserInfoType} from '../../users/types/user-type';
+import {userQwRepository} from '../../users/repository/user.qwery.repository';
+import {commentService} from '../../comments/service/comment-service';
+import {commentContentValidator} from '../../comments/validator-middleware/input-validator';
+import {commentQwRepository} from '../../comments/repository/comment.qwery.repository';
+import {authMiddleware} from '../../users/validator-middleware/auth-middleware';
+
+interface AuthRequest<T = any> extends Request<T> {
+    userId?: string;
+}
 
 export const postRouter = express.Router();
 
@@ -41,6 +51,33 @@ const postController = {
             res.sendStatus(HttpStatus.NOT_FOUND);
         }
     },
+    async createCommentByPostId(req: AuthRequest<{ postId: string }>, res: Response): Promise<void> {
+        const post: any = await postService.findPostById(req.params.postId);
+        if (!post) {
+            res.sendStatus(HttpStatus.NOT_FOUND);
+        } else {
+            const userInfo: UserInfoType | null = await userQwRepository.getUserInfo(req.userId!);
+            if (!userInfo) {
+                res.sendStatus(HttpStatus.NOT_FOUND);
+            } else {
+                const commentId = await commentService.createComment(
+                    req.body, req.params.postId, userInfo.userId, userInfo.login);
+                const comment = await commentQwRepository.findCommentById(commentId);
+                if (comment) res.status(HttpStatus.CREATED).send(comment);
+            }
+        }
+    },
+    async getCommentsByPostId(req: AuthRequest<{ postId: string }>, res: Response): Promise<void> {
+        const post: any = await postService.findPostById(req.params.postId);
+        if (!post) {
+            res.sendStatus(HttpStatus.NOT_FOUND);
+        } else {
+            const queryParams = commonQueryParams(req);
+
+            const comments = await commentQwRepository.findComments(queryParams, req.params.postId);
+            res.status(HttpStatus.OK).send(comments);
+        }
+    },
     async deletePost(req: Request, res: Response): Promise<void> {
         const post = await postService.deletePost(req.params.id);
         if (post) {
@@ -50,30 +87,50 @@ const postController = {
         }
     },
 };
-postRouter.get('/', postController.getPosts);
-postRouter.post('/',
-    authValidator,
-    postTitleValidator,
-    postShortDescriptionValidator,
-    postContentValidator,
-    postBlogIdValidator,
-    errorsResultMiddleware,
-    postController.createPost);
-postRouter.get('/:id',
-    paramIdValidator,
-    errorsResultMiddleware,
-    postController.getPostById);
-postRouter.put('/:id',
-    authValidator,
-    paramIdValidator,
-    postTitleValidator,
-    postShortDescriptionValidator,
-    postContentValidator,
-    postBlogIdValidator,
-    errorsResultMiddleware,
-    postController.updatePost);
-postRouter.delete('/:id',
-    authValidator,
-    paramIdValidator,
-    errorsResultMiddleware,
-    postController.deletePost);
+
+postRouter
+    .route('/')
+    .get(
+        postController.getPosts)
+    .post(
+        authValidator,
+        postTitleValidator,
+        postShortDescriptionValidator,
+        postContentValidator,
+        postBlogIdValidator,
+        errorsResultMiddleware,
+        postController.createPost);
+
+postRouter
+    .route('/:id')
+    .get(
+        paramIdValidator,
+        errorsResultMiddleware,
+        postController.getPostById)
+    .put(
+        authValidator,
+        paramIdValidator,
+        postTitleValidator,
+        postShortDescriptionValidator,
+        postContentValidator,
+        postBlogIdValidator,
+        errorsResultMiddleware,
+        postController.updatePost)
+    .delete(
+        authValidator,
+        paramIdValidator,
+        errorsResultMiddleware,
+        postController.deletePost);
+
+postRouter
+    .route('/:postId/comments')
+    .post(
+        authMiddleware,
+        paramPostIdValidator,
+        commentContentValidator,
+        errorsResultMiddleware,
+        postController.createCommentByPostId)
+    .get(
+        paramPostIdValidator,
+        errorsResultMiddleware,
+        postController.getCommentsByPostId);

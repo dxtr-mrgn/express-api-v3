@@ -17,7 +17,7 @@ const authController = {
             res.sendStatus(HttpStatus.UNAUTHORIZED);
         } else {
             const token = await jwtService.createJWT(userId)
-            res.status(HttpStatus.CREATED).send(token);
+            res.status(HttpStatus.OK).send(token);
         }
     },
     async info(req: Request, res: Response): Promise<void> {

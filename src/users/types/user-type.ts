@@ -1,10 +1,12 @@
+import {ObjectId} from 'mongodb';
+
 export type UserInputType = {
     login: string,
     password: string,
     email: string
 }
 
-export type UserConstructType = {
+export type UserType = {
     login: string,
     passwordHash: string,
     passwordSalt: string,
@@ -12,12 +14,9 @@ export type UserConstructType = {
     createdAt: string
 }
 
-
-export type UserDBType = {
-    id: string,
+export type ViewUserType = {
+    id: ObjectId,
     login: string,
-    passwordHash: string,
-    passwordSalt: string,
     email: string,
     createdAt: string
 }
@@ -28,12 +27,12 @@ export type UserInfoType = {
     userId: string,
 }
 
-export type UsersDBType = {
+export type ViewUsersType = {
     pagesCount: number,
     page: number,
     pageSize: number,
     totalCount: number,
-    items: UserDBType[]
+    items: ViewUserType[]
 }
 
 export type LoginUser = {

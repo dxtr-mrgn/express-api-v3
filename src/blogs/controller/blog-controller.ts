@@ -78,40 +78,41 @@ const blogController = {
         }
     },
 };
-blogRouter.get('/', blogController.getBlogs);
-blogRouter.post('/',
-    authValidator,
-    blogNameValidator,
-    blogDescriptionValidator,
-    blogWebsiteUrlValidator,
-    errorsResultMiddleware,
-    blogController.createBlog);
-blogRouter.get('/:id',
-    paramIdValidator,
-    errorsResultMiddleware,
-    blogController.getBlogById);
-blogRouter.get('/:id/posts',
-    paramIdValidator,
-    errorsResultMiddleware,
-    blogController.getPostByBlogId);
-blogRouter.post('/:id/posts',
-    authValidator,
-    paramIdValidator,
-    postTitleValidator,
-    postShortDescriptionValidator,
-    postContentValidator,
-    errorsResultMiddleware,
-    blogController.createPostByBlogId);
-blogRouter.put('/:id',
-    authValidator,
-    paramIdValidator,
-    blogNameValidator,
-    blogDescriptionValidator,
-    blogWebsiteUrlValidator,
-    errorsResultMiddleware,
-    blogController.updateBlog);
-blogRouter.delete('/:id',
-    authValidator,
-    paramIdValidator,
-    errorsResultMiddleware,
-    blogController.deleteBlog);
+blogRouter
+    .get('/', blogController.getBlogs)
+    .post('/',
+        authValidator,
+        blogNameValidator,
+        blogDescriptionValidator,
+        blogWebsiteUrlValidator,
+        errorsResultMiddleware,
+        blogController.createBlog)
+    .get('/:id',
+        paramIdValidator,
+        errorsResultMiddleware,
+        blogController.getBlogById)
+    .get('/:id/posts',
+        paramIdValidator,
+        errorsResultMiddleware,
+        blogController.getPostByBlogId)
+    .post('/:id/posts',
+        authValidator,
+        paramIdValidator,
+        postTitleValidator,
+        postShortDescriptionValidator,
+        postContentValidator,
+        errorsResultMiddleware,
+        blogController.createPostByBlogId)
+    .put('/:id',
+        authValidator,
+        paramIdValidator,
+        blogNameValidator,
+        blogDescriptionValidator,
+        blogWebsiteUrlValidator,
+        errorsResultMiddleware,
+        blogController.updateBlog)
+    .delete('/:id',
+        authValidator,
+        paramIdValidator,
+        errorsResultMiddleware,
+        blogController.deleteBlog);

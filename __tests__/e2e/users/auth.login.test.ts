@@ -36,7 +36,7 @@ describe('POST /auth/login', () => {
                     loginOrEmail: user1.login,
                     password: 'validpassword123'
                 })
-                .expect(HttpStatus.NO_CONTENT);
+                .expect(HttpStatus.OK);
         });
         it('204 Email', async () => {
             await api()
@@ -45,7 +45,7 @@ describe('POST /auth/login', () => {
                     loginOrEmail: user1.email,
                     password: 'validpassword123'
                 })
-                .expect(HttpStatus.NO_CONTENT);
+                .expect(HttpStatus.OK);
         });
         it('400 Invalid Login', async () => {
             await api()

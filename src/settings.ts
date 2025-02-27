@@ -9,6 +9,7 @@ export const SETTINGS = {
         POSTS: '/posts',
         USERS: '/users',
         AUTH: '/auth/login',
+        COMMENTS: '/comments',
         ALL_DATA: '/testing/all-data'
     },
     LOGIN: 'admin',
@@ -24,5 +25,6 @@ export const enum HttpStatus {
     NO_CONTENT = 204,
     BAD_REQUEST = 400,
     UNAUTHORIZED = 401,
+    FORBIDDEN = 403,
     NOT_FOUND = 404
 }

@@ -1,5 +1,5 @@
 import {userRepository} from '../repository/user-repository';
-import {UserConstructType, UserInputType} from '../types/user-type';
+import {UserType, UserInputType} from '../types/user-type';
 import bcrypt from 'bcrypt';
 import {ResultObj} from '../../common/types';
 
@@ -31,7 +31,7 @@ export const userService = {
         const passwordSalt = await bcrypt.genSalt(10);
         const passwordHash = await this._generateHash(userInput.password, passwordSalt);
 
-        const newUser: UserConstructType = {
+        const newUser: UserType = {
             login: userInput.login,
             passwordHash: passwordHash,
             passwordSalt: passwordSalt,

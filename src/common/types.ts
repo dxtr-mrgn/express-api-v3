@@ -1,3 +1,5 @@
+import {Request} from 'express';
+
 export type ResultObj = {
     status: 'success' | 'error',
     id?: string,

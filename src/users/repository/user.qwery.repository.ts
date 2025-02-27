@@ -1,85 +1,94 @@
-import {BlogConstructType, BlogInputType} from '../../blogs/types/blog-types';
 import {client} from '../../db/mongodb';
-import {DeleteResult, ObjectId} from 'mongodb';
+import {Collection, ObjectId, WithId} from 'mongodb';
 import {SETTINGS} from '../../settings';
-import {UserConstructType, UserDBType, UserInfoType, UsersDBType} from '../types/user-type';
-import {userRepository} from './user-repository';
+import {UserInfoType, UserType, ViewUsersType, ViewUserType} from '../types/user-type';
 
-export const userCollection = client.db(SETTINGS.DB_NAME).collection('Users');
-console.log('MongoDB Name: ' + SETTINGS.DB_NAME);
+export const userCollection: Collection<UserType> = client
+    .db(SETTINGS.DB_NAME)
+    .collection<UserType>('Users');
+
+interface UserFilterDto {
+    searchLoginTerm: string;
+    searchEmailTerm: string;
+    sortBy: string;
+    sortDirection: 'asc' | 'desc';
+    pageNumber: number;
+    pageSize: number;
+}
+
+const toIdString = (id: ObjectId): string => id.toString();
 
 export const userQwRepository = {
-    async getUsers(filter?: any): Promise<any> {
-        const users = await userCollection.aggregate([
-            ...filter,
-            {
-                $project: {
-                    _id: 0,
-                    id: '$_id',
-                    login: 1,
-                    email: 1,
-                    createdAt: 1,
-                }
-            }]).toArray();
+    async findUserById(id: string): Promise<ViewUserType | null> {
+        try {
+            const user: WithId<UserType> | null = await userCollection.findOne({_id: new ObjectId(id)});
+            return user ? this.mapUser(user) : null;
+        } catch (e) {
+            console.error('Invalid ObjectId:', e);
+            return null;
+        }
+    },
 
-        return users;
-    },
-    async findUserById(id: string): Promise<UserDBType> {
-        return (await this.getUsers([{$match: {_id: new ObjectId(id)}}]))[0];
-    },
-    async getUserInfo(id: string): Promise<UserInfoType> {
+    async getUserInfo(id: string): Promise<UserInfoType | null> {
         const user = await this.findUserById(id);
-        return {
-            email: user.email,
-            login: user.login,
-            userId: user.id
-        };
+        return user
+            ? {
+                email: user.email,
+                login: user.login,
+                userId: toIdString(user.id),
+            }
+            : null;
     },
-    async findUsers(filterDto: {
-        searchLoginTerm: string,
-        searchEmailTerm: string,
-        sortBy: string,
-        sortDirection: string,
-        pageNumber: number,
-        pageSize: number,
-    }): Promise<UsersDBType> {
-        const aggregateFilter: any = [];
-        const {searchLoginTerm, searchEmailTerm, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
+    async findUsers({
+                        searchLoginTerm,
+                        searchEmailTerm,
+                        sortBy,
+                        sortDirection,
+                        pageNumber,
+                        pageSize,
+                    }: UserFilterDto): Promise<ViewUsersType> {
 
-        const filter = this._combineSearchFilter(searchLoginTerm, searchEmailTerm);
-        aggregateFilter.push({$match: filter});
-        aggregateFilter.push({$sort: {[sortBy]: sortDirection === 'asc' ? 1 : -1}});
-        aggregateFilter.push({$skip: (pageNumber - 1) * pageSize});
-        aggregateFilter.push({$limit: pageSize});
+        const filter = this.combineSearchFilter(searchLoginTerm, searchEmailTerm);
 
-        const users = await this.getUsers(aggregateFilter);
-        const userCount = await this.getUsersCount(searchLoginTerm, searchEmailTerm);
+        const users: WithId<UserType>[] = await userCollection
+            .find(filter)
+            .sort({[sortBy]: sortDirection === 'asc' ? 1 : -1})
+            .skip((pageNumber - 1) * pageSize)
+            .limit(pageSize)
+            .toArray();
+
+        const userCount = await userCollection.countDocuments(filter);
 
         return {
             pagesCount: Math.ceil(userCount / pageSize),
             page: pageNumber,
             pageSize: pageSize,
             totalCount: userCount,
-            items: users
+            items: this.mapUsers(users)
         };
     },
-    async getUsersCount(searchLoginTerm: string, searchEmailTerm: string): Promise<number> {
-        const filter = this._combineSearchFilter(searchLoginTerm, searchEmailTerm);
-        return userCollection.countDocuments(filter);
-    },
 
-    _combineSearchFilter(searchLoginTerm: string, searchEmailTerm: string): any {
-        let matchFilter: any = {$or: new Array()};
+    combineSearchFilter(searchLoginTerm: string, searchEmailTerm: string): any {
+        const condition: object[] = [];
 
         if (searchLoginTerm) {
-            matchFilter.$or.push({login: RegExp(searchLoginTerm, 'i')});
+            condition.push({login: new RegExp(searchLoginTerm, 'i')});
         }
         if (searchEmailTerm) {
-            matchFilter.$or.push({email: RegExp(searchEmailTerm, 'i')});
-        } else if (!searchEmailTerm && !searchLoginTerm) {
-            matchFilter = {};
+            condition.push({email: new RegExp(searchEmailTerm, 'i')});
         }
+        return condition.length > 0 ? {$or: condition} : {};
+    },
 
-        return matchFilter;
+    mapUser(user: WithId<UserType>): ViewUserType {
+        return {
+            id: user._id,
+            login: user.login,
+            email: user.email,
+            createdAt: user.createdAt
+        };
+    },
+    mapUsers(users: WithId<UserType>[]): ViewUserType[] {
+        return users.map(comment => this.mapUser(comment));
     }
 };
