@@ -39,7 +39,6 @@ const authController = {
 
 
 authRouter.post('/login',
-    authValidator,
     loginOrEmailValidator,
     passwordValidator,
     errorsResultMiddleware,
