@@ -16,7 +16,7 @@ export const app = express();
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response): void => {
-    res.send({'Version': 'JWT 4.0'});
+    res.send({'Version': 'JWT 5.0'});
 });
 
 app.delete(SETTINGS.API.ALL_DATA, async (req: Request, res: Response): Promise<void> => {
