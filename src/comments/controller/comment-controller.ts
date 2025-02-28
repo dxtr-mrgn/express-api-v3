@@ -17,11 +17,11 @@ export const commentRouter = express.Router();
 const sendResponse = (res: Response, status: HttpStatus, data?: any) => {
     status === HttpStatus.NO_CONTENT || !data
         ? res.sendStatus(status)
-        : res.status(status).send(res);
+        : res.status(status).json(data);
 };
 export const commentController = {
     async getCommentById(req: Request, res: Response): Promise<void> {
-        const comment: MappedCommentType | null = await commentQwRepository.findCommentById(req.params.id);
+        const comment = await commentQwRepository.findCommentById(req.params.id);
         sendResponse(res, comment ? HttpStatus.OK : HttpStatus.NOT_FOUND, comment);
     },
     async updateComment(req: AuthRequest<{ commentId: string }>, res: Response): Promise<void> {
@@ -48,20 +48,18 @@ export const commentController = {
 };
 
 commentRouter
-    .route('/:id')
-    .get(
+    .get('/:id',
         paramIdValidator,
         errorsResultMiddleware,
         commentController.getCommentById);
 
 commentRouter
-    .route('/:commentId')
-    .put(
+    .put('/:commentId',
         authMiddleware,
         paramCommentIdValidator,
         errorsResultMiddleware,
         commentController.updateComment)
-    .delete(
+    .delete('/:commentId',
         authMiddleware,
         paramCommentIdValidator,
         errorsResultMiddleware,
