@@ -1,7 +1,7 @@
 import express, {Request, Response} from 'express';
 import {HttpStatus} from '../../settings';
 import {userService} from '../service/user-service';
-import {authValidator, loginOrEmailValidator, passwordValidator} from '../../middleware/auth-validator';
+import {loginOrEmailValidator, passwordValidator} from '../../middleware/auth-validator';
 import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
 import {jwtService} from '../service/jwt-service';
 import {userQwRepository} from '../repository/user.qwery.repository';
@@ -29,7 +29,7 @@ const authController = {
             return;
         }
         const token = await jwtService.createJWT(userId);
-        sendResponse(res, HttpStatus.OK, token);
+        sendResponse(res, HttpStatus.OK, { accessToken: token} );
     },
     async info(req: AuthRequest, res: Response): Promise<void> {
         const userInfo = await userQwRepository.getUserInfo(req.userId!);
