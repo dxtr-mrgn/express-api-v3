@@ -7,6 +7,7 @@ import {commentQwRepository} from '../repository/comment.qwery.repository';
 import {userQwRepository} from '../../users/repository/user.qwery.repository';
 import {authMiddleware} from '../../users/validator-middleware/auth-middleware';
 import {MappedCommentType} from '../types/comment-type';
+import {commentContentValidator} from '../validator-middleware/input-validator';
 
 interface AuthRequest<T = any> extends Request<T> {
     userId?: string;
@@ -74,6 +75,7 @@ commentRouter
     .put('/:commentId',
         authMiddleware,
         paramCommentIdValidator,
+        commentContentValidator,
         errorsResultMiddleware,
         commentController.updateComment.bind(commentController))
     .delete('/:commentId',
