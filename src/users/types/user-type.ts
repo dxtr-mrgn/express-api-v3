@@ -6,12 +6,23 @@ export type UserInputType = {
     email: string
 }
 
-export type UserType = {
+export type accountData = {
     login: string,
     passwordHash: string,
     passwordSalt: string,
     email: string,
     createdAt: string
+}
+
+export type emailConfirmation = {
+    confirmationCode: string,
+    expirationDate: Date,
+    isConfirmed: string
+}
+
+export type UserType = {
+    accountData: accountData,
+    emailConfirmation: emailConfirmation
 }
 
 export type ViewUserType = {

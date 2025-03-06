@@ -83,9 +83,9 @@ export const userQwRepository = {
     mapUser(user: WithId<UserType>): ViewUserType {
         return {
             id: user._id,
-            login: user.login,
-            email: user.email,
-            createdAt: user.createdAt
+            login: user.accountData.login,
+            email: user.accountData.email,
+            createdAt: user.accountData.createdAt
         };
     },
     mapUsers(users: WithId<UserType>[]): ViewUserType[] {
