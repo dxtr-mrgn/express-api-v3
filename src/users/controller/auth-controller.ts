@@ -5,10 +5,14 @@ import {loginOrEmailValidator, passwordValidator} from '../../middleware/auth-va
 import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
 import {jwtService} from '../service/jwt-service';
 import {userQwRepository} from '../repository/user.qwery.repository';
-import {authMiddleware} from '../validator-middleware/auth-middleware';
+import {authMiddleware, provideCodeMiddleware} from '../validator-middleware/auth-middleware';
 import {UserInputType} from '../types/user-type';
-import { getRegistrationEmailTemplate } from './registration-message';
 import {authService} from '../service/auth-service';
+import {
+    createEmailValidator,
+    createLoginValidator,
+    createPasswordValidator
+} from '../validator-middleware/input-validator';
 
 interface LoginRequestBody {
     loginOrEmail: string;
@@ -43,27 +47,27 @@ const authController = {
         sendResponse(res, HttpStatus.OK, {accessToken: token});
     },
     async registration(req: AuthRequest<{}, {}, UserInputType>, res: Response): Promise<void> {
-        const result = await userService.createUser(req.body);
+        const result = await authService.registerUser(req.body);
         if (result.status === 'success') {
-            res.send(HttpStatus.CREATED).json(HttpStatus.OK);
+            res.sendStatus(HttpStatus.NO_CONTENT);
         } else {
             res.sendStatus(HttpStatus.BAD_REQUEST);
         }
     },
     async registrationConfirmation(req: AuthRequest<{}, {}, ConfirmationCodeRequestBody>, res: Response): Promise<void> {
-        const registrationConfirmed = await authService.confirmEmail(req.body.code);
-        if (!registrationConfirmed) {
-            res.sendStatus(HttpStatus.BAD_REQUEST);
+        const result = await authService.confirmEmail(req.body.code);
+        if (result.status !== 'success') {
+            res.status(HttpStatus.BAD_REQUEST).json(result.error);
         } else {
-            res.send(HttpStatus.CREATED).json(HttpStatus.OK);
+            res.sendStatus(HttpStatus.NO_CONTENT);
         }
     },
-    async resendConfirmation(req: AuthRequest<{}, {}, ConfirmationCodeRequestBody>, res: Response): Promise<void> {
-        const registrationConfirmed = await authService.confirmEmail(req.body.code);
-        if (!registrationConfirmed) {
-            res.sendStatus(HttpStatus.BAD_REQUEST);
+    async resendConfirmation(req: AuthRequest<{}, {}, ConfirmationResendEmailRequestBody>, res: Response): Promise<void> {
+        const resent = await authService.resendConfirmation(req.body.email);
+        if (resent.status === 'success') {
+            res.sendStatus(HttpStatus.NO_CONTENT);
         } else {
-            res.send(HttpStatus.CREATED).json(HttpStatus.OK);
+            res.status(HttpStatus.BAD_REQUEST).json(resent.error);
         }
     },
     async info(req: AuthRequest, res: Response): Promise<void> {
@@ -80,16 +84,20 @@ authRouter.post('/login',
     authController.login);
 
 authRouter.post('/registration',
+    createLoginValidator,
+    createPasswordValidator,
+    createEmailValidator,
     errorsResultMiddleware,
     authController.registration);
 
 authRouter.post('/registration-confirmation',
+    provideCodeMiddleware,
     errorsResultMiddleware,
     authController.registrationConfirmation);
 
 authRouter.post('/registration-email-resending',
     errorsResultMiddleware,
-    authController.registration);
+    authController.resendConfirmation);
 
 authRouter.get('/me',
     authMiddleware,

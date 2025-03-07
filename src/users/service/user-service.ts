@@ -1,11 +1,9 @@
 import {userRepository} from '../repository/user-repository';
-import {UserType, UserInputType} from '../types/user-type';
+import {UserInputType, UserType} from '../types/user-type';
 import bcrypt from 'bcrypt';
 import {ResultObj} from '../../common/types';
 import {v4 as uuidv4} from 'uuid';
 import {add} from 'date-fns';
-import {format} from 'date-fns/format';
-import {emailManager} from '../adapters/emaiil-manager';
 import {ObjectId} from 'mongodb';
 
 const toIdString = (id: ObjectId): string => id.toString();
@@ -75,7 +73,7 @@ export const userService = {
                 error: this.errorMessage('email')
             };
         }
-        return null
+        return null;
     },
     async _generateHash(password: string, passwordSalt: string) {
         return await bcrypt.hash(password, passwordSalt);

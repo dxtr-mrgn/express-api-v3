@@ -1,13 +1,13 @@
 import {userRepository} from '../repository/user-repository';
-import {UserType, UserInputType} from '../types/user-type';
+import {UserInputType, UserType} from '../types/user-type';
 import bcrypt from 'bcrypt';
 import {ResultObj} from '../../common/types';
 import {v4 as uuidv4} from 'uuid';
 import {add} from 'date-fns';
-import {format} from 'date-fns/format';
-import {emailManager} from '../adapters/emaiil-manager';
+import {sendEmail} from '../adapters/email-manager';
 import {ObjectId} from 'mongodb';
 import {userService} from './user-service';
+import {getRegistrationEmailTemplate} from '../controller/registration-message';
 
 const toIdString = (id: ObjectId): string => id.toString();
 
@@ -24,7 +24,8 @@ export const authService = {
         const passwordSalt = await bcrypt.genSalt(10);
         const passwordHash = await this._generateHash(userInput.password, passwordSalt);
 
-        const confirmationCode = uuidv4()
+        const confirmationCode = uuidv4();
+        const message = getRegistrationEmailTemplate(confirmationCode);
         const newUser: UserType = {
             accountData: {
                 login: userInput.login,
@@ -35,25 +36,22 @@ export const authService = {
             },
             emailConfirmation: {
                 confirmationCode,
-                expirationDate: add(new Date(), {minutes: 5}),
+                expirationDate: add(new Date(), {minutes: 10}),
                 isConfirmed: 'no'
             }
         };
         const userId: string = await userRepository.createUser(newUser);
-        try {
-            await emailManager.sendEmailConfirmation(userInput.email, confirmationCode);
-        } catch (error) {
-            console.log(error);
-            await userRepository.deleteUser(new ObjectId(userId));
+
+        const emailSent = await sendEmail(userInput.email, message);
+        if (emailSent) {
             return {
-                status: 'error',
-                error: error
+                status: 'success',
+                id: userId
             };
+        } else {
+            await userRepository.deleteUser(new ObjectId(userId));
+            return this.errorSendingEmail();
         }
-        return {
-            status: 'success',
-            id: userId
-        };
     },
 
     async checkCredentials(loginOrEmail: string, password: string): Promise<string | null> {
@@ -71,43 +69,102 @@ export const authService = {
     async _generateHash(password: string, passwordSalt: string) {
         return await bcrypt.hash(password, passwordSalt);
     },
-    async confirmEmail(code: string) {
-        let user = await userRepository.findByConfirmationCode(code);
-        if (!user) return false;
-        if (user.emailConfirmation.confirmationCode !== code) return false;
-        if (user.emailConfirmation.expirationDate < new Date()) return false;
+    async confirmEmail(code: string): Promise<ResultObj> {
+        let message;
+        const user = await userRepository.findByConfirmationCode(code);
+        if (user) {
+            if (user.emailConfirmation.expirationDate < new Date()) message = 'Confirmation code has expired';
+            if (user.emailConfirmation.isConfirmed === 'yes') message = 'Confirmed email already exists';
 
-        return await userRepository.updateUserById(user._id, {'emailConfirmation.isConfirmed': 'yes'});
+            const updated = await userRepository.updateUserById(user!._id, {'emailConfirmation.isConfirmed': 'yes'});
+            if (!updated) message = 'isConfirmed status was not updated';
+        } else {
+            message = 'The confirmation code is invalid';
+        }
+
+        if (message) return {
+            status: 'error',
+            error: {
+                errorsMessages: [
+                    {
+                        message,
+                        field: 'User'
+                    }
+                ]
+            }
+        };
+
+        return {status: 'success'};
     },
-    async resendConfirmation(email: string) {
+    async resendConfirmation(email: string): Promise<ResultObj> {
         const user = await userRepository.findByEmail(email);
-        if (!user) return false;
+        if (!user) return {
+            status: 'error',
+            error: {
+                errorsMessages: [
+                    {
+                        message: 'No user with provided email',
+                        field: 'User'
+                    }
+                ]
+            }
+        };
+        if (user.emailConfirmation.isConfirmed === 'yes') return {
+            status: 'error',
+            error: {
+                errorsMessages: [
+                    {
+                        message: 'Email already has been confirmed',
+                        field: 'Email'
+                    }
+                ]
+            }
+        };
 
-        const confirmationCode =  uuidv4()
+        const confirmationCode = uuidv4();
+        const message = getRegistrationEmailTemplate(confirmationCode);
         const updatedUser = {
             ...user, emailConfirmation: {
                 confirmationCode,
-                expirationDate: add(new Date(), {minutes: 5}),
+                expirationDate: add(new Date(), {minutes: 10}),
                 isConfirmed: 'no'
             }
         };
-        const userId = user._id
+        const userId = user._id;
         const updated = await userRepository.updateUserById(userId, updatedUser);
-        if (!updated) return false;
-        try {
-            await emailManager.sendEmailConfirmation(email, confirmationCode);
-        } catch (error) {
-            console.log(error);
-            await userRepository.deleteUser(userId);
-            return {
-                status: 'error',
-                error: error
-            };
-        }
-        return {
-            status: 'success',
-            id: userId
+        if (!updated) return {
+            status: 'error',
+            error: {
+                errorsMessages: [
+                    {
+                        message: 'The user has not been updated',
+                        field: 'User'
+                    }
+                ]
+            }
         };
+        const emailSent = await sendEmail(email, message);
+        if (emailSent) {
+            return {
+                status: 'success',
+                id: toIdString(userId)
+            };
+        } else {
+            await userRepository.deleteUser(userId);
+            return this.errorSendingEmail();
+        }
     },
-
+    errorSendingEmail(): ResultObj {
+        return {
+            status: 'error',
+            error: {
+                errorsMessages: [
+                    {
+                        message: 'There was an error sending email confirmation. The user has been deleted',
+                        field: 'Email'
+                    }
+                ]
+            }
+        };
+    }
 };
