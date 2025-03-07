@@ -51,7 +51,7 @@ const authController = {
         if (result.status === 'success') {
             res.sendStatus(HttpStatus.NO_CONTENT);
         } else {
-            res.sendStatus(HttpStatus.BAD_REQUEST);
+            res.status(HttpStatus.BAD_REQUEST).json(result.error);
         }
     },
     async registrationConfirmation(req: AuthRequest<{}, {}, ConfirmationCodeRequestBody>, res: Response): Promise<void> {
