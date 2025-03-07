@@ -88,7 +88,7 @@ export const authService = {
                 errorsMessages: [
                     {
                         message,
-                        field: 'User'
+                        field: 'code'
                     }
                 ]
             }
@@ -104,7 +104,7 @@ export const authService = {
                 errorsMessages: [
                     {
                         message: 'No user with provided email',
-                        field: 'User'
+                        field: 'email'
                     }
                 ]
             }

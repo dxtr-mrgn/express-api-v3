@@ -60,14 +60,14 @@ export const userService = {
     },
     async checkExistingUser(login: string, email: string): Promise<ResultObj | null> {
         const existLoginUser = await userRepository.findByLogin(login);
-        if (existLoginUser !== null) {
+        if (existLoginUser) {
             return {
                 status: 'error',
                 error: this.errorMessage('login')
             };
         }
         const existEmailUser = await userRepository.findByEmail(email);
-        if (existEmailUser !== null) {
+        if (existEmailUser) {
             return {
                 status: 'error',
                 error: this.errorMessage('email')
