@@ -1,5 +1,5 @@
 import {userRepository} from '../repository/user-repository';
-import {UserInputType, UserType} from '../types/user-type';
+import {UserDBType, UserInputType} from '../types/user-type';
 import bcrypt from 'bcrypt';
 import {ResultObj} from '../../common/types';
 import {v4 as uuidv4} from 'uuid';
@@ -24,14 +24,12 @@ export const userService = {
         const passwordSalt = await bcrypt.genSalt(10);
         const passwordHash = await this._generateHash(userInput.password, passwordSalt);
 
-        const newUser: UserType = {
-            accountData: {
-                login: userInput.login,
-                passwordHash: passwordHash,
-                passwordSalt: passwordSalt,
-                email: userInput.email,
-                createdAt: new Date().toISOString()
-            },
+        const newUser: Omit<UserDBType, '_id'> = {
+            login: userInput.login,
+            passwordHash: passwordHash,
+            passwordSalt: passwordSalt,
+            email: userInput.email,
+            createdAt: new Date().toISOString(),
             emailConfirmation: {
                 confirmationCode: uuidv4(),
                 expirationDate: add(new Date(), {minutes: 5}),
@@ -50,8 +48,8 @@ export const userService = {
         const user = await userRepository.findByLoginOrEmail(loginOrEmail);
         if (!user) return null;
 
-        const passwordHash = await this._generateHash(password, user.accountData.passwordSalt);
-        if (user.accountData.passwordHash === passwordHash) {
+        const passwordHash = await this._generateHash(password, user.passwordSalt);
+        if (user.passwordHash === passwordHash) {
             return toIdString(user._id);
         } else {
             return null;

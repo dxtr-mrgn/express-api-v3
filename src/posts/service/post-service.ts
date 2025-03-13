@@ -1,16 +1,17 @@
 import {PostDBType, PostInputType} from '../types/post-types';
-import {postRepository} from '../repository/post-repository';
-import {blogRepository} from '../../blogs/repository/blog-repository';
+import {postRepository} from '../repository/post.repository';
+import {blogQwRepository} from '../../blogs/repository/blog.qw.reposiitory';
 
 export const postService = {
     async deleteAllPosts() {
         await postRepository.deleteAllPosts();
     },
-    async createPost(postInput: PostInputType, id?: string) {
-        const blogId = id ? id : postInput.blogId;
-        const blog: any = await blogRepository.findBlogsById(blogId);
 
-        const newPost: PostDBType = {
+    async createPost(postInput: PostInputType, id?: string): Promise<string> {
+        const blogId = id ? id : postInput.blogId;
+        const blog: any = await blogQwRepository.findBlogById(blogId);
+
+        const newPost: Omit<PostDBType, '_id'> = {
             title: postInput.title,
             shortDescription: postInput.shortDescription,
             content: postInput.content,
@@ -20,45 +21,12 @@ export const postService = {
         };
         return postRepository.createPost(newPost);
     },
-    async updatePost(id: string, postUpdate: PostInputType) {
+
+    async updatePost(id: string, postUpdate: PostInputType): Promise<boolean> {
         return postRepository.updatePost(id, postUpdate);
     },
-    async findPosts(filterDto: {
-        blogId?: string,
-        sortBy: string,
-        sortDirection: string,
-        pageNumber: number,
-        pageSize: number,
-    }) {
-        const {blogId, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
 
-        const posts = await postRepository.findPosts({
-            blogId,
-            sortBy,
-            sortDirection,
-            pageNumber,
-            pageSize
-        });
-
-        let blogIdFilter = {};
-        if (blogId) {
-            blogIdFilter = {blogId};
-        }
-        const blogCount = await postRepository.getPostsCount(blogIdFilter);
-
-        return {
-            pagesCount: Math.ceil(blogCount / pageSize),
-            page: pageNumber,
-            pageSize: pageSize,
-            totalCount: blogCount,
-            items: posts
-        };
-
-    },
-    async findPostById(id: string): Promise<any> {
-        return postRepository.findPostById(id);
-    },
-    async deletePost(id: string) {
+    async deletePost(id: string): Promise<boolean> {
         return postRepository.deletePost(id);
     }
 };

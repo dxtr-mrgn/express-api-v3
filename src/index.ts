@@ -1,10 +1,10 @@
 import {app} from './app';
 import {SETTINGS} from './settings';
-import {runDB} from './db/mongodb';
+import {connectDB} from './db/mongodb';
 
 
 const startApp = async (): Promise<void> => {
-    const res = await runDB();
+    const res = await connectDB();
     if (!res) process.exit(1);
 };
 

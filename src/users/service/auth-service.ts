@@ -1,5 +1,5 @@
 import {userRepository} from '../repository/user-repository';
-import {UserInputType, UserType} from '../types/user-type';
+import {UserDBType, UserInputType} from '../types/user-type';
 import bcrypt from 'bcrypt';
 import {ResultObj} from '../../common/types';
 import {v4 as uuidv4} from 'uuid';
@@ -8,15 +8,10 @@ import {sendEmail} from '../adapters/email-manager';
 import {ObjectId} from 'mongodb';
 import {userService} from './user-service';
 import {getRegistrationEmailTemplate} from '../controller/registration-message';
+import {toIdString} from '../../common/helper';
 
-const toIdString = (id: ObjectId): string => id.toString();
 
 export const authService = {
-    errorMessage(field: string) {
-        return {
-            errorsMessages: [{field: field, message: field + ' should be unique'}]
-        };
-    },
     async registerUser(userInput: UserInputType): Promise<ResultObj> {
         const userDoesExist = await userService.checkExistingUser(userInput.login, userInput.email);
         if (userDoesExist) return userDoesExist;
@@ -26,17 +21,15 @@ export const authService = {
 
         const confirmationCode = uuidv4();
         const message = getRegistrationEmailTemplate(confirmationCode);
-        const newUser: UserType = {
-            accountData: {
-                login: userInput.login,
-                passwordHash: passwordHash,
-                passwordSalt: passwordSalt,
-                email: userInput.email,
-                createdAt: new Date().toISOString()
-            },
+        const newUser: Omit<UserDBType, '_id'> = {
+            login: userInput.login,
+            passwordHash: passwordHash,
+            passwordSalt: passwordSalt,
+            email: userInput.email,
+            createdAt: new Date().toISOString(),
             emailConfirmation: {
                 confirmationCode,
-                expirationDate: add(new Date(), {minutes: 10}),
+                expirationDate: add(new Date(), {minutes: 1}),
                 isConfirmed: 'no'
             }
         };
@@ -58,17 +51,18 @@ export const authService = {
         const user = await userRepository.findByLoginOrEmail(loginOrEmail);
         if (!user) return null;
 
-        const passwordHash = await this._generateHash(password, user.accountData.passwordSalt);
-        if (user.accountData.passwordHash === passwordHash) {
+        const passwordHash = await this._generateHash(password, user.passwordSalt);
+        if (user.passwordHash === passwordHash) {
             return toIdString(user._id);
         } else {
             return null;
         }
-
     },
+
     async _generateHash(password: string, passwordSalt: string) {
         return await bcrypt.hash(password, passwordSalt);
     },
+
     async confirmEmail(code: string): Promise<ResultObj> {
         let message;
         const user = await userRepository.findByConfirmationCode(code);
@@ -96,6 +90,7 @@ export const authService = {
 
         return {status: 'success'};
     },
+
     async resendConfirmation(email: string): Promise<ResultObj> {
         const user = await userRepository.findByEmail(email);
         if (!user) return {
@@ -154,6 +149,7 @@ export const authService = {
             return this.errorSendingEmail();
         }
     },
+
     errorSendingEmail(): ResultObj {
         return {
             status: 'error',

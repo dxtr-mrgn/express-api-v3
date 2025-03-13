@@ -1,10 +1,13 @@
+import {ObjectId} from 'mongodb';
+
 export type BlogInputType = {
     name: string,
     description: string,
     websiteUrl: string
 }
 
-export type BlogConstructType = {
+export type BlogDBType = {
+    _id: ObjectId,
     name: string,
     description: string,
     websiteUrl: string,
@@ -12,12 +15,19 @@ export type BlogConstructType = {
     isMembership: boolean
 }
 
-
-export type BlogDBType = {
+export type ViewBlogType = {
     id: string,
     name: string,
     description: string,
     websiteUrl: string,
     createdAt: string,
     isMembership: boolean
+}
+
+export type ViewBlogsType = {
+    pagesCount: number,
+    page: number,
+    pageSize: number,
+    totalCount: number,
+    items: ViewBlogType[]
 }

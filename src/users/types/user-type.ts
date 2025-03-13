@@ -6,27 +6,24 @@ export type UserInputType = {
     email: string
 }
 
-export type accountData = {
-    login: string,
-    passwordHash: string,
-    passwordSalt: string,
-    email: string,
-    createdAt: string
-}
-
 export type emailConfirmation = {
     confirmationCode: string,
     expirationDate: Date,
     isConfirmed: string
 }
 
-export type UserType = {
-    accountData: accountData,
+export type UserDBType = {
+    _id: ObjectId
+    login: string,
+    passwordHash: string,
+    passwordSalt: string,
+    email: string,
+    createdAt: string,
     emailConfirmation: emailConfirmation
 }
 
 export type ViewUserType = {
-    id: ObjectId,
+    id: string,
     login: string,
     email: string,
     createdAt: string
@@ -58,3 +55,16 @@ export type errorMessage = {
 export type NotUniqueError = {
     errorsMessages: errorMessage[]
 };
+
+export interface LoginRequestBody {
+    loginOrEmail: string;
+    password: string;
+}
+
+export interface ConfirmationCodeRequestBody {
+    code: string;
+}
+
+export interface ConfirmationResendEmailRequestBody {
+    email: string;
+}

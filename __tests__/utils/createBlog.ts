@@ -2,12 +2,13 @@ import {HttpStatus, SETTINGS} from '../../src/settings';
 import {validBlog} from '../datasets/blogs';
 import request from 'supertest';
 import {app} from '../../src/app';
-import {BlogDBType} from '../../src/blogs/types/blog-types';
+import {BlogDBType, ViewBlogType} from '../../src/blogs/types/blog-types';
 import chalk from 'chalk';
+import {toIdString} from '../../src/common/helper';
 
 const api = () => request(app);
 
-export const createBlog = async (): Promise<BlogDBType> => {
+export const createBlog = async (): Promise<ViewBlogType> => {
     const res = await api()
         .post(SETTINGS.API.BLOGS)
         .send(validBlog.payload)
@@ -21,5 +22,6 @@ export const createBlog = async (): Promise<BlogDBType> => {
 };
 
 export const getValidBlogId = async (): Promise<string> => {
-    return (await createBlog()).id
+    const blog = await createBlog()
+    return blog.id
 }

@@ -1,11 +1,7 @@
-import {client} from '../../db/mongodb';
-import {Collection, ObjectId, WithId} from 'mongodb';
-import {SETTINGS} from '../../settings';
-import {UserInfoType, UserType, ViewUsersType, ViewUserType} from '../types/user-type';
-
-export const userCollection: Collection<UserType> = client
-    .db(SETTINGS.DB_NAME)
-    .collection<UserType>('Users');
+import {Collection, ObjectId} from 'mongodb';
+import {UserDBType, UserInfoType, ViewUsersType, ViewUserType} from '../types/user-type';
+import {getUsersCollection} from '../../db/mongodb';
+import {toIdString} from '../../common/helper';
 
 interface UserFilterDto {
     searchLoginTerm: string;
@@ -16,12 +12,15 @@ interface UserFilterDto {
     pageSize: number;
 }
 
-const toIdString = (id: ObjectId): string => id.toString();
-
 export const userQwRepository = {
+    async getCollection(): Promise<Collection<UserDBType>> {
+        return getUsersCollection();
+    },
+
     async findUserById(id: string): Promise<ViewUserType | null> {
+        const collection = await this.getCollection();
         try {
-            const user: WithId<UserType> | null = await userCollection.findOne({_id: new ObjectId(id)});
+            const user: UserDBType | null = await collection.findOne({_id: new ObjectId(id)});
             return user ? this.mapUser(user) : null;
         } catch (e) {
             console.error('Invalid ObjectId:', e);
@@ -35,10 +34,11 @@ export const userQwRepository = {
             ? {
                 email: user.email,
                 login: user.login,
-                userId: toIdString(user.id),
+                userId: user.id
             }
             : null;
     },
+
     async findUsers({
                         searchLoginTerm,
                         searchEmailTerm,
@@ -47,17 +47,17 @@ export const userQwRepository = {
                         pageNumber,
                         pageSize,
                     }: UserFilterDto): Promise<ViewUsersType> {
-
+        const collection = await this.getCollection();
         const filter = this.combineSearchFilter(searchLoginTerm, searchEmailTerm);
 
-        const users: WithId<UserType>[] = await userCollection
+        const users: UserDBType[] = await collection
             .find(filter)
             .sort({[sortBy]: sortDirection === 'asc' ? 1 : -1})
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
             .toArray();
 
-        const userCount = await userCollection.countDocuments(filter);
+        const userCount = await collection.countDocuments(filter);
 
         return {
             pagesCount: Math.ceil(userCount / pageSize),
@@ -80,15 +80,15 @@ export const userQwRepository = {
         return condition.length > 0 ? {$or: condition} : {};
     },
 
-    mapUser(user: WithId<UserType>): ViewUserType {
+    mapUser(user: UserDBType): ViewUserType {
         return {
-            id: user._id,
-            login: user.accountData.login,
-            email: user.accountData.email,
-            createdAt: user.accountData.createdAt
+            id: toIdString(user._id),
+            login: user.login,
+            email: user.email,
+            createdAt: user.createdAt
         };
     },
-    mapUsers(users: WithId<UserType>[]): ViewUserType[] {
+    mapUsers(users: UserDBType[]): ViewUserType[] {
         return users.map(comment => this.mapUser(comment));
     }
 };

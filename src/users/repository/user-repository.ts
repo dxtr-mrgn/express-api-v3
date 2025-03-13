@@ -1,44 +1,59 @@
-import {client} from '../../db/mongodb';
-import {Collection, DeleteResult, ObjectId, WithId} from 'mongodb';
-import {SETTINGS} from '../../settings';
-import {UserType, ViewUserType} from '../types/user-type';
+import {getUsersCollection} from '../../db/mongodb';
+import {Collection, DeleteResult, ObjectId} from 'mongodb';
+import {UserDBType} from '../types/user-type';
 
-export const userCollection: Collection<UserType> = client
-    .db(SETTINGS.DB_NAME)
-    .collection<UserType>('Users');
 
 export const userRepository = {
-    async deleteAllUsers() {
-        await userCollection.deleteMany({});
+    async getCollection(): Promise<Collection<UserDBType>> {
+        return getUsersCollection();
     },
-    async createUser(newUser: UserType): Promise<any> {
-        const res = await userCollection.insertOne(newUser);
+
+    async deleteAllUsers() {
+        const collection = await this.getCollection();
+        await collection.deleteMany({});
+    },
+
+    async createUser(newUser: Omit<UserDBType, '_id'>): Promise<any> {
+        const collection = await this.getCollection();
+        const res = await collection.insertOne(newUser as UserDBType);
         return res.insertedId;
     },
+
     async deleteUser(_id: ObjectId): Promise<number | null> {
-        const res: DeleteResult = await userCollection.deleteOne({_id});
+        const collection = await this.getCollection();
+        const res: DeleteResult = await collection.deleteOne({_id});
 
         return res.deletedCount;
     },
-    async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserType> | null> {
-        return await userCollection.findOne({
+
+    async findByLoginOrEmail(loginOrEmail: string): Promise<UserDBType | null> {
+        const collection = await this.getCollection();
+        return await collection.findOne({
             $or: [
                 {login: loginOrEmail},
                 {email: loginOrEmail}
             ]
         });
     },
-    async findByLogin(login: string): Promise<WithId<UserType> | null> {
-        return await userCollection.findOne({'accountData.login': login});
+
+    async findByLogin(login: string): Promise<UserDBType | null> {
+        const collection = await this.getCollection();
+        return await collection.findOne({'login': login});
     },
-    async findByEmail(email: string): Promise<WithId<UserType> | null> {
-        return await userCollection.findOne({'accountData.email': email});
+
+    async findByEmail(email: string): Promise<UserDBType | null> {
+        const collection = await this.getCollection();
+        return await collection.findOne({'email': email});
     },
-    async findByConfirmationCode(code: string): Promise<WithId<UserType> | null> {
-        return await userCollection.findOne({'emailConfirmation.confirmationCode': code});
+
+    async findByConfirmationCode(code: string): Promise<UserDBType | null> {
+        const collection = await this.getCollection();
+        return await collection.findOne({'emailConfirmation.confirmationCode': code});
     },
+
     async updateUserById(_id: ObjectId, updateData: Object): Promise<boolean> {
-        const result = await userCollection.updateOne({_id}, {$set: updateData})
-        return result.modifiedCount === 1
+        const collection = await this.getCollection();
+        const result = await collection.updateOne({_id}, {$set: updateData});
+        return result.modifiedCount === 1;
     }
 };

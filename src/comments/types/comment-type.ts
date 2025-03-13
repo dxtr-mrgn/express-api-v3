@@ -3,30 +3,30 @@ import {ObjectId} from 'mongodb';
 export type CommentInputType = {
     content: string
 }
+export type CommentatorInfo = {
+    userId: string,
+    userLogin: string
+}
 
-export type CommentType = {
+export type CommentDBType = {
+    _id: ObjectId,
     content: string,
     commentatorInfo: CommentatorInfo,
     postId: string,
     createdAt: string
 }
 
-export type CommentatorInfo = {
-    userId: string,
-    userLogin: string
-}
-
-export type MappedCommentType = {
+export type ViewCommentType = {
     id: string | ObjectId,
     content: string,
     commentatorInfo: CommentatorInfo,
     createdAt: string
 }
 
-export type CommentsType = {
+export type ViewCommentsType = {
     pagesCount: number,
     page: number,
     pageSize: number,
     totalCount: number,
-    items: MappedCommentType[]
+    items: ViewCommentType[]
 }

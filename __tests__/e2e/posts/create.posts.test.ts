@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {app} from '../../../src/app';
 import {HttpStatus, SETTINGS} from '../../../src/settings';
-import {client} from '../../../src/db/mongodb';
+import {connectDB, disconnectDB} from '../../../src/db/mongodb';
 import {clearDB} from '../../utils/clearDB';
 import {
     invalidBlogIdPost,
@@ -19,18 +19,24 @@ import {
     validPost
 } from '../../datasets/posts';
 import {getValidBlogId} from '../../utils/createBlog';
+import {MongoMemoryServer} from 'mongodb-memory-server';
 
 const api = () => request(app);
 
 describe('POST /posts', () => {
+    let mongoServer: MongoMemoryServer;
+
     beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        await connectDB(mongoServer.getUri());
         await clearDB();
 
-        validPost.payload.blogId = await getValidBlogId()
+        validPost.payload.blogId = await getValidBlogId();
 
     });
     afterAll(async () => {
-        await client.close();
+        await disconnectDB();
+        await mongoServer.stop();
     });
     describe('4xx', () => {
         it('400 invalid Title', async () => {

@@ -1,10 +1,10 @@
 import request from 'supertest';
 import {app} from '../../../src/app';
 import {HttpStatus, SETTINGS} from '../../../src/settings';
-import {client} from '../../../src/db/mongodb';
-import {createBlog, getValidBlogId} from '../../utils/createBlog';
+import {connectDB, disconnectDB} from '../../../src/db/mongodb';
 import {clearDB} from '../../utils/clearDB';
 import {createPost} from '../../utils/createPost';
+import {MongoMemoryServer} from 'mongodb-memory-server';
 
 const api = () => request(app);
 
@@ -12,8 +12,11 @@ describe('GET /posts, /posts/:id', () => {
     let post1: any = {};
     let post2: any = {};
     let post1IdUrl: string = '';
+    let mongoServer: MongoMemoryServer;
 
     beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        await connectDB(mongoServer.getUri());
         await clearDB();
 
         post1 = await createPost();
@@ -21,7 +24,8 @@ describe('GET /posts, /posts/:id', () => {
         post1IdUrl = SETTINGS.API.POSTS + '/' + post1.id;
     });
     afterAll(async () => {
-        await client.close();
+        await disconnectDB();
+        await mongoServer.stop();
     });
     it('200 /posts', async () => {
         await api()

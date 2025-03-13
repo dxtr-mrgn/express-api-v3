@@ -1,11 +1,10 @@
 import request from 'supertest';
 import {app} from '../../../src/app';
 import {HttpStatus, SETTINGS} from '../../../src/settings';
-import {client} from '../../../src/db/mongodb';
-import {createBlog, getValidBlogId} from '../../utils/createBlog';
+import {connectDB, disconnectDB} from '../../../src/db/mongodb';
 import {clearDB} from '../../utils/clearDB';
-import {createPost} from '../../utils/createPost';
 import {createUser} from '../../utils/createUser';
+import {MongoMemoryServer} from 'mongodb-memory-server';
 
 const api = () => request(app);
 
@@ -13,28 +12,32 @@ describe('GET /users', () => {
     let user1: any = {};
     let user2: any = {};
     let user3: any = {};
+    let mongoServer: MongoMemoryServer;
 
     beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        await connectDB(mongoServer.getUri());
         await clearDB();
 
         user1 = await createUser({
             login: 'aaa',
             password: 'validpassword123',
-            email: 'bbb@gmail.com'
+            email: 'aaa@gmail.com'
         });
         user2 = await createUser({
-            login: 'ccc',
+            login: 'bbb',
             password: 'validpassword123',
-            email: 'ddd@gmail.com'
+            email: 'bbb@gmail.com'
         });
         user3 = await createUser({
-            login: 'eee',
+            login: 'ccc',
             password: 'validpassword123',
-            email: 'fff@gmail.com'
+            email: 'ccc@gmail.com'
         });
     });
     afterAll(async () => {
-        await client.close();
+        await disconnectDB();
+        await mongoServer.stop();
     });
     it('200 /users default', async () => {
         await api()
@@ -108,9 +111,9 @@ describe('GET /users', () => {
                 items: [user1]
             });
     });
-    it('200 /users searchEmailTerm=fff', async () => {
+    it('200 /users searchEmailTerm=ccc', async () => {
         await api()
-            .get(SETTINGS.API.USERS + '?searchEmailTerm=fff')
+            .get(SETTINGS.API.USERS + '?searchEmailTerm=ccc')
             .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
             .expect(HttpStatus.OK, {
                 pagesCount: 1,
@@ -120,9 +123,9 @@ describe('GET /users', () => {
                 items: [user3]
             });
     });
-    it('200 /users searchLoginTerm=aaa&searchEmailTerm=fff', async () => {
+    it('200 /users searchLoginTerm=aaa&searchEmailTerm=ccc', async () => {
         await api()
-            .get(SETTINGS.API.USERS + '?searchLoginTerm=aaa&searchEmailTerm=fff')
+            .get(SETTINGS.API.USERS + '?searchLoginTerm=aaa&searchEmailTerm=ccc')
             .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
             .expect(HttpStatus.OK, {
                 pagesCount: 1,

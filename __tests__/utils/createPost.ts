@@ -3,13 +3,13 @@ import request from 'supertest';
 import {app} from '../../src/app';
 import chalk from 'chalk';
 import {validPost} from '../datasets/posts';
-import {PostDBType} from '../../src/posts/types/post-types';
 import {getValidBlogId} from './createBlog';
+import {ViewPostType} from '../../src/posts/types/post-types';
 
 const api = () => request(app);
 
-export const createPost = async (): Promise<PostDBType> => {
-    validPost.payload.blogId = await getValidBlogId()
+export const createPost = async (): Promise<ViewPostType> => {
+    validPost.payload.blogId = await getValidBlogId();
 
     const res = await api()
         .post(SETTINGS.API.POSTS)

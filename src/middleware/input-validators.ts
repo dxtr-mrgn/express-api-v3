@@ -1,6 +1,6 @@
-import {body, param} from 'express-validator';
-import {blogRepository} from '../blogs/repository/blog-repository';
+import {body} from 'express-validator';
 import {ObjectId} from 'mongodb';
+import {blogQwRepository} from '../blogs/repository/blog.qw.reposiitory';
 
 
 export const blogNameValidator = body('name')
@@ -105,7 +105,7 @@ export const postBlogIdValidator = body('blogId')
         return true;
     })
     .custom(async (value) => {
-        const blog: any = await blogRepository.findBlogsById(value);
+        const blog: any = await blogQwRepository.findBlogById(value);
 
         if (!blog) {
             throw new Error('blogId is invalid');

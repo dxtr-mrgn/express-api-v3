@@ -1,9 +1,10 @@
 import request from 'supertest';
 import {app} from '../../../src/app';
 import {HttpStatus, SETTINGS} from '../../../src/settings';
-import {client} from '../../../src/db/mongodb';
+import {connectDB, disconnectDB} from '../../../src/db/mongodb';
 import {clearDB} from '../../utils/clearDB';
 import {createUser} from '../../utils/createUser';
+import {MongoMemoryServer} from 'mongodb-memory-server';
 
 
 const api = () => request(app);
@@ -13,15 +14,19 @@ const meUrl = SETTINGS.API.AUTH + '/me';
 describe('POST /auth/login', () => {
     let user1: any = {};
     let token: any = {};
+    let mongoServer: MongoMemoryServer;
 
     beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        await connectDB(mongoServer.getUri());
         await clearDB();
 
         user1 = await createUser();
 
     });
     afterAll(async () => {
-        await client.close();
+        await disconnectDB();
+        await mongoServer.stop();
     });
     describe('200', () => {
         it('200 Login', async () => {
@@ -34,7 +39,7 @@ describe('POST /auth/login', () => {
                 .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
                 .expect(HttpStatus.OK);
 
-            token = res.body;
+            token = res.body.accessToken;
         });
         it('200 Get Info', async () => {
             console.log(token);

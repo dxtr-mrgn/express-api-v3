@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {app} from '../../../src/app';
 import {HttpStatus, SETTINGS} from '../../../src/settings';
-import {client} from '../../../src/db/mongodb';
+import {connectDB, disconnectDB} from '../../../src/db/mongodb';
 import {clearDB} from '../../utils/clearDB';
 import {
     invalidEmailUser,
@@ -18,16 +18,22 @@ import {
     tooShortPasswordUser,
     validUser
 } from '../../datasets/users';
+import {MongoMemoryServer} from 'mongodb-memory-server';
 
 
 const api = () => request(app);
 
-describe('POST /posts', () => {
+describe('POST /users', () => {
+    let mongoServer: MongoMemoryServer;
+
     beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        await connectDB(mongoServer.getUri());
         await clearDB();
     });
     afterAll(async () => {
-        await client.close();
+        await disconnectDB();
+        await mongoServer.stop();
     });
     describe('4xx', () => {
         it('400 invalid Login', async () => {

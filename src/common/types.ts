@@ -10,6 +10,7 @@ export type errorMessage = {
     field: string,
     message: string
 }
-export type NotUniqueError = {
-    errorsMessages: errorMessage[]
-};
+
+export interface AuthRequest<Params = any, ReqBody = any> extends Request<Params, any, ReqBody> {
+    userId?: string;
+}

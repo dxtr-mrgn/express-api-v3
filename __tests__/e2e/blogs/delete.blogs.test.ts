@@ -1,9 +1,10 @@
 import request from 'supertest';
 import {app} from '../../../src/app';
 import {HttpStatus, SETTINGS} from '../../../src/settings';
-import {client} from '../../../src/db/mongodb';
+import {connectDB, disconnectDB} from '../../../src/db/mongodb';
 import {createBlog} from '../../utils/createBlog';
 import {clearDB} from '../../utils/clearDB';
+import {MongoMemoryServer} from 'mongodb-memory-server';
 
 const api = () => request(app);
 
@@ -11,8 +12,11 @@ describe('DELETE /blogs/:id', () => {
     let blog1: any = {};
     let blog2: any = {};
     let blog1IdUrl: string = '';
+    let mongoServer: MongoMemoryServer;
 
     beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        await connectDB(mongoServer.getUri());
         await clearDB();
 
         blog1 = await createBlog();
@@ -22,7 +26,8 @@ describe('DELETE /blogs/:id', () => {
     });
 
     afterAll(async () => {
-        await client.close();
+        await disconnectDB();
+        await mongoServer.stop();
     });
 
     describe('4xx', () => {
@@ -43,7 +48,7 @@ describe('DELETE /blogs/:id', () => {
                 .delete(blog1IdUrl)
                 .expect(HttpStatus.UNAUTHORIZED);
         });
-    })
+    });
     describe('204', () => {
         it('204', async () => {
             await api()

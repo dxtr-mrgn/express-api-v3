@@ -1,104 +1,111 @@
-import express, {Request, Response} from 'express';
+import express, {Request, Response, Router} from 'express';
 import {HttpStatus} from '../../settings';
 import {userService} from '../service/user-service';
+import {jwtService} from '../service/jwt-service';
+import {authService} from '../service/auth-service';
+import {userQwRepository} from '../repository/user.qwery.repository';
 import {loginOrEmailValidator, passwordValidator} from '../../middleware/auth-validator';
 import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
-import {jwtService} from '../service/jwt-service';
-import {userQwRepository} from '../repository/user.qwery.repository';
 import {authMiddleware, provideCodeMiddleware} from '../validator-middleware/auth-middleware';
-import {UserInputType} from '../types/user-type';
-import {authService} from '../service/auth-service';
 import {
     createEmailValidator,
     createLoginValidator,
-    createPasswordValidator
+    createPasswordValidator,
 } from '../validator-middleware/input-validator';
+import {
+    ConfirmationCodeRequestBody,
+    ConfirmationResendEmailRequestBody,
+    LoginRequestBody,
+    UserInputType,
+} from '../types/user-type';
+import {sendResponse} from '../../common/helper';
 
-interface LoginRequestBody {
-    loginOrEmail: string;
-    password: string;
-}
-
-interface ConfirmationCodeRequestBody {
-    code: string;
-}
-
-interface ConfirmationResendEmailRequestBody {
-    email: string;
-}
-
-interface AuthRequest<P = any, ResBody = any, ReqBody = any> extends Request<P, ResBody, ReqBody> {
+interface AuthRequest<ReqBody = any> extends Request<any, any, ReqBody> {
     userId?: string;
 }
 
-export const authRouter = express.Router();
-
-const sendResponse = <T>(res: Response, status: HttpStatus, data?: T) => {
-    data ? res.status(status).json(data) : res.sendStatus(status);
-};
 const authController = {
-    async login(req: AuthRequest<{}, {}, LoginRequestBody>, res: Response): Promise<void> {
-        const userId = await userService.checkCredentials(req.body.loginOrEmail, req.body.password);
+    async login(req: AuthRequest<LoginRequestBody>, res: Response): Promise<void> {
+        const {loginOrEmail, password} = req.body;
+        const userId = await authService.checkCredentials(loginOrEmail, password);
+
         if (!userId) {
-            res.sendStatus(HttpStatus.UNAUTHORIZED);
-            return;
+            return sendResponse(res, HttpStatus.UNAUTHORIZED);
         }
+
         const token = await jwtService.createJWT(userId);
         sendResponse(res, HttpStatus.OK, {accessToken: token});
     },
-    async registration(req: AuthRequest<{}, {}, UserInputType>, res: Response): Promise<void> {
+
+    async register(req: AuthRequest<UserInputType>, res: Response): Promise<void> {
         const result = await authService.registerUser(req.body);
-        if (result.status === 'success') {
-            res.sendStatus(HttpStatus.NO_CONTENT);
-        } else {
-            res.status(HttpStatus.BAD_REQUEST).json(result.error);
-        }
+        sendResponse(
+            res,
+            result.status === 'success' ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST,
+            result.error
+        );
     },
-    async registrationConfirmation(req: AuthRequest<{}, {}, ConfirmationCodeRequestBody>, res: Response): Promise<void> {
-        const result = await authService.confirmEmail(req.body.code);
-        if (result.status !== 'success') {
-            res.status(HttpStatus.BAD_REQUEST).json(result.error);
-        } else {
-            res.sendStatus(HttpStatus.NO_CONTENT);
-        }
+
+    async confirmRegistration(req: AuthRequest<ConfirmationCodeRequestBody>, res: Response): Promise<void> {
+        const {code} = req.body;
+        const result = await authService.confirmEmail(code);
+        sendResponse(
+            res,
+            result.status === 'success' ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST,
+            result.error
+        );
     },
-    async resendConfirmation(req: AuthRequest<{}, {}, ConfirmationResendEmailRequestBody>, res: Response): Promise<void> {
-        const resent = await authService.resendConfirmation(req.body.email);
-        if (resent.status === 'success') {
-            res.sendStatus(HttpStatus.NO_CONTENT);
-        } else {
-            res.status(HttpStatus.BAD_REQUEST).json(resent.error);
-        }
+
+    async resendConfirmationEmail(req: AuthRequest<ConfirmationResendEmailRequestBody>, res: Response): Promise<void> {
+        const {email} = req.body;
+        const result = await authService.resendConfirmation(email);
+        sendResponse(
+            res,
+            result.status === 'success' ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST,
+            result.error
+        );
     },
-    async info(req: AuthRequest, res: Response): Promise<void> {
+
+    async getUserInfo(req: AuthRequest, res: Response): Promise<void> {
         const userInfo = await userQwRepository.getUserInfo(req.userId!);
         sendResponse(res, HttpStatus.OK, userInfo);
     },
 };
 
+export const authRouter: Router = express.Router();
 
-authRouter.post('/login',
+authRouter.post(
+    '/login',
     loginOrEmailValidator,
     passwordValidator,
     errorsResultMiddleware,
-    authController.login);
+    authController.login
+);
 
-authRouter.post('/registration',
+authRouter.post(
+    '/registration',
     createLoginValidator,
     createPasswordValidator,
     createEmailValidator,
     errorsResultMiddleware,
-    authController.registration);
+    authController.register
+);
 
-authRouter.post('/registration-confirmation',
+authRouter.post(
+    '/registration-confirmation',
     provideCodeMiddleware,
     errorsResultMiddleware,
-    authController.registrationConfirmation);
+    authController.confirmRegistration
+);
 
-authRouter.post('/registration-email-resending',
+authRouter.post(
+    '/registration-email-resending',
     errorsResultMiddleware,
-    authController.resendConfirmation);
+    authController.resendConfirmationEmail
+);
 
-authRouter.get('/me',
+authRouter.get(
+    '/me',
     authMiddleware,
-    authController.info);
+    authController.getUserInfo
+);

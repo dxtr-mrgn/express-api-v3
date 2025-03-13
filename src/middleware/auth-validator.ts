@@ -1,5 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import {SETTINGS} from '../settings';
+import {body} from 'express-validator';
 
 const loginPassword = `${SETTINGS.LOGIN}:${SETTINGS.PASSWORD}`;
 const encodedAuth = Buffer.from(loginPassword, 'utf-8').toString('base64');
@@ -15,15 +16,13 @@ export const authValidator = (req: Request, res: Response, next: NextFunction) =
     next();
 };
 
-import {body} from 'express-validator';
-
 export const loginOrEmailValidator = body('loginOrEmail')
     .trim()
     .notEmpty().withMessage('loginOrEmail is required')
-    .isString().withMessage('loginOrEmail should be string')
+    .isString().withMessage('loginOrEmail should be string');
 
 
 export const passwordValidator = body('password')
     .trim()
     .notEmpty().withMessage('password is required')
-    .isString().withMessage('password should be string')
+    .isString().withMessage('password should be string');

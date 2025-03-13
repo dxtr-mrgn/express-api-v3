@@ -1,118 +1,129 @@
-import express, {Request, Response} from 'express';
-import {blogService} from '../service/blog-service';
+import express, {Request, Response, Router} from 'express';
 import {HttpStatus} from '../../settings';
+import {blogService} from '../service/blog-service';
+import {postService} from '../../posts/service/post-service';
+import {blogQwRepository} from '../repository/blog.qw.reposiitory';
+import {postQwRepository} from '../../posts/repository/post.qw.repository';
+import {blogQueryParams, commonQueryParams} from '../../common/query-params';
+import {authValidator} from '../../middleware/auth-validator';
+import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
+import {paramIdValidator} from '../../common/input-validator';
 import {
     blogDescriptionValidator,
     blogNameValidator,
     blogWebsiteUrlValidator,
+} from '../../middleware/input-validators';
+import {
     postContentValidator,
     postShortDescriptionValidator,
-    postTitleValidator
+    postTitleValidator,
 } from '../../middleware/input-validators';
-import {errorsResultMiddleware} from '../../middleware/errors-result-middleware';
-import {postService} from '../../posts/service/post-service';
-import {blogQueryParams, commonQueryParams} from '../../common/query-params';
-import {paramIdValidator} from '../../common/input-validator';
-import {authValidator} from '../../middleware/auth-validator';
+import {sendResponse} from '../../common/helper';
+import {BlogInputType} from '../types/blog-types';
+import {PostInputType} from '../../posts/types/post-types';
 
-export const blogRouter = express.Router();
+interface BlogQueryRequest extends Request {
+    query: {
+        searchNameTerm?: string;
+        sortBy?: string;
+        sortDirection?: 'asc' | 'desc';
+        pageNumber?: string;
+        pageSize?: string;
+    };
+}
+
+interface BlogRequest<Params = any, ReqBody = any> extends Request<Params, any, ReqBody> {
+}
 
 const blogController = {
-    async getBlogs(req: Request, res: Response): Promise<void> {
-        const queryParams = {...blogQueryParams(req), ...commonQueryParams(req)};
-
-        const blogs =
-            await blogService.findBlogs(queryParams);
-        res.status(HttpStatus.OK).send(blogs);
+    async getBlogs(req: BlogQueryRequest, res: Response): Promise<void> {
+        const query = {...blogQueryParams(req), ...commonQueryParams(req)};
+        const blogs = await blogQwRepository.findBlogs(query);
+        sendResponse(res, HttpStatus.OK, blogs);
     },
-    async getPostByBlogId(req: Request, res: Response): Promise<void> {
-        const blogId = req.params.id;
-        const blog: any = await blogService.findBlogsById(blogId);
+
+    async getBlogById(req: BlogRequest<{ id: string }>, res: Response): Promise<void> {
+        const blog = await blogQwRepository.findBlogById(req.params.id);
+        sendResponse(res, blog ? HttpStatus.OK : HttpStatus.NOT_FOUND, blog);
+    },
+
+    async createBlog(req: BlogRequest<{}, BlogInputType>, res: Response): Promise<void> {
+        const blogId = await blogService.createBlog(req.body);
+        const blog = await blogQwRepository.findBlogById(blogId);
+        sendResponse(res, blog ? HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR, blog);
+    },
+
+    async updateBlog(req: BlogRequest<{ id: string }, BlogInputType>, res: Response): Promise<void> {
+        const updated = await blogService.updateBlog(req.params.id, req.body);
+        sendResponse(res, updated ? HttpStatus.NO_CONTENT : HttpStatus.NOT_FOUND);
+    },
+
+    async deleteBlog(req: BlogRequest<{ id: string }>, res: Response): Promise<void> {
+        const deleted = await blogService.deleteBlog(req.params.id);
+        sendResponse(res, deleted ? HttpStatus.NO_CONTENT : HttpStatus.NOT_FOUND);
+    },
+
+    async getPostsByBlogId(req: BlogRequest<{ id: string }>, res: Response): Promise<void> {
+        const blog = await blogQwRepository.findBlogById(req.params.id);
         if (!blog) {
-            res.sendStatus(HttpStatus.NOT_FOUND);
-        } else {
-
-            const queryParams = {blogId, ...commonQueryParams(req)};
-
-
-            const posts = await postService.findPosts(queryParams);
-            if (posts) res.status(HttpStatus.OK).send(posts);
+            return sendResponse(res, HttpStatus.NOT_FOUND);
         }
+
+        const query = {blogId: req.params.id, ...commonQueryParams(req)};
+        const posts = await postQwRepository.findPosts(query);
+        sendResponse(res, HttpStatus.OK, posts);
     },
-    async getBlogById(req: Request, res: Response): Promise<void> {
-        const blog: any = await blogService.findBlogsById(req.params.id);
+
+    async createPostByBlogId(req: BlogRequest<{ id: string }, PostInputType>, res: Response): Promise<void> {
+        const blog = await blogQwRepository.findBlogById(req.params.id);
         if (!blog) {
-            res.sendStatus(HttpStatus.NOT_FOUND);
-        } else {
-            res.status(HttpStatus.OK).send(blog);
+            return sendResponse(res, HttpStatus.NOT_FOUND);
         }
-    },
-    async createBlog(req: Request, res: Response): Promise<void> {
-        const blog = (await blogService.createBlog(req.body))[0];
-        if (blog) res.status(HttpStatus.CREATED).send(blog);
-    },
-    async createPostByBlogId(req: Request, res: Response): Promise<void> {
-        const blog: any = await blogService.findBlogsById(req.params.id);
-        if (!blog) {
-            res.sendStatus(HttpStatus.NOT_FOUND);
-        } else {
-            req.body.blogId = req.params.id;
-            const post = await postService.createPost(req.body);
-            if (post) res.status(HttpStatus.CREATED).send(post);
-        }
-    },
-    async updateBlog(req: Request, res: Response): Promise<void> {
-        const blog = await blogService.updateBlog(req.params.id, req.body);
-        if (blog) {
-            res.sendStatus(HttpStatus.NO_CONTENT);
-        } else {
-            res.sendStatus(HttpStatus.NOT_FOUND);
-        }
-    },
-    async deleteBlog(req: Request, res: Response): Promise<void> {
-        const blog = await blogService.deleteBlog(req.params.id);
-        if (blog) {
-            res.sendStatus(HttpStatus.NO_CONTENT);
-        } else {
-            res.sendStatus(HttpStatus.NOT_FOUND);
-        }
+
+        const postData = {...req.body, blogId: req.params.id};
+        const postId = await postService.createPost(postData);
+        const post = await postQwRepository.findPostById(postId);
+        sendResponse(res, post ? HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR, post);
     },
 };
+
+export const blogRouter: Router = express.Router();
+
 blogRouter
-    .get('/', blogController.getBlogs)
-    .post('/',
+    .route('/')
+    .get(blogController.getBlogs)
+    .post(
         authValidator,
         blogNameValidator,
         blogDescriptionValidator,
         blogWebsiteUrlValidator,
         errorsResultMiddleware,
-        blogController.createBlog)
-    .get('/:id',
+        blogController.createBlog
+    );
+
+blogRouter
+    .route('/:id')
+    .get(paramIdValidator, errorsResultMiddleware, blogController.getBlogById)
+    .put(
+        authValidator,
         paramIdValidator,
+        blogNameValidator,
+        blogDescriptionValidator,
+        blogWebsiteUrlValidator,
         errorsResultMiddleware,
-        blogController.getBlogById)
-    .get('/:id/posts',
-        paramIdValidator,
-        errorsResultMiddleware,
-        blogController.getPostByBlogId)
-    .post('/:id/posts',
+        blogController.updateBlog
+    )
+    .delete(authValidator, paramIdValidator, errorsResultMiddleware, blogController.deleteBlog);
+
+blogRouter
+    .route('/:id/posts')
+    .get(paramIdValidator, errorsResultMiddleware, blogController.getPostsByBlogId)
+    .post(
         authValidator,
         paramIdValidator,
         postTitleValidator,
         postShortDescriptionValidator,
         postContentValidator,
         errorsResultMiddleware,
-        blogController.createPostByBlogId)
-    .put('/:id',
-        authValidator,
-        paramIdValidator,
-        blogNameValidator,
-        blogDescriptionValidator,
-        blogWebsiteUrlValidator,
-        errorsResultMiddleware,
-        blogController.updateBlog)
-    .delete('/:id',
-        authValidator,
-        paramIdValidator,
-        errorsResultMiddleware,
-        blogController.deleteBlog);
+        blogController.createPostByBlogId
+    );

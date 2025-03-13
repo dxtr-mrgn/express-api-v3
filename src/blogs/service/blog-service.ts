@@ -1,12 +1,12 @@
-import {BlogConstructType, BlogInputType} from '../types/blog-types';
-import {blogRepository} from '../repository/blog-repository';
+import {BlogDBType, BlogInputType} from '../types/blog-types';
+import {blogRepository} from '../repository/blog.repository';
 
 export const blogService = {
     async deleteAllBlogs() {
         await blogRepository.deleteAllBlogs();
     },
     async createBlog(blogInput: BlogInputType) {
-        const newBlog: BlogConstructType = {
+        const newBlog: Omit<BlogDBType, '_id'> = {
             name: blogInput.name,
             description: blogInput.description,
             websiteUrl: blogInput.websiteUrl,
@@ -17,37 +17,6 @@ export const blogService = {
     },
     async updateBlog(id: string, blogUpdate: BlogInputType) {
         return blogRepository.updateBlog(id, blogUpdate);
-    },
-    async findBlogs(filterDto: {
-        searchNameTerm: string | null,
-        sortBy: string,
-        sortDirection: string,
-        pageNumber: number,
-        pageSize: number,
-    }) {
-        const {searchNameTerm, sortBy, sortDirection, pageNumber, pageSize} = filterDto;
-
-        const blogs = await blogRepository.findBlogs({
-            searchNameTerm,
-            sortBy,
-            sortDirection,
-            pageNumber,
-            pageSize
-        });
-        const blogCount = await blogRepository.getBlogsCount(searchNameTerm);
-
-        return {
-            pagesCount: Math.ceil(blogCount / pageSize),
-            page: pageNumber,
-            pageSize: pageSize,
-            totalCount: blogCount,
-            items: blogs,
-
-        };
-
-    },
-    async findBlogsById(id: string): Promise<any> {
-        return blogRepository.findBlogsById(id);
     },
     async deleteBlog(id: string) {
         return blogRepository.deleteBlog(id);
