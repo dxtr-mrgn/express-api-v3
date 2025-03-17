@@ -19,11 +19,11 @@ export const userRepository = {
         return res.insertedId;
     },
 
-    async deleteUser(_id: ObjectId): Promise<number | null> {
+    async deleteUser(id: string): Promise<boolean> {
         const collection = await this.getCollection();
-        const res: DeleteResult = await collection.deleteOne({_id});
+        const res: DeleteResult = await collection.deleteOne({_id: new ObjectId(id)});
 
-        return res.deletedCount;
+        return res.deletedCount === 1;
     },
 
     async findByLoginOrEmail(loginOrEmail: string): Promise<UserDBType | null> {

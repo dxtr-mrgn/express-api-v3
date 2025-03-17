@@ -11,7 +11,7 @@ function getRandomInt(max: number) {
 }
 
 export const createUser = async (data?: any): Promise<UserDBType> => {
-    const randomLogin = 'a' + (getRandomInt(9) * 100 + getRandomInt(9));
+    const randomLogin = 'a' + getRandomInt(9) * 10 + 'b' + getRandomInt(9) * 10;
     const payload = data ? data : {
         login: randomLogin,
         password: 'validpassword123',

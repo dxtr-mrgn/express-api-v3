@@ -4,9 +4,7 @@ import bcrypt from 'bcrypt';
 import {ResultObj} from '../../common/types';
 import {v4 as uuidv4} from 'uuid';
 import {add} from 'date-fns';
-import {ObjectId} from 'mongodb';
 
-const toIdString = (id: ObjectId): string => id.toString();
 
 export const userService = {
     async deleteAllUsers() {
@@ -44,18 +42,18 @@ export const userService = {
         };
     },
 
-    async checkCredentials(loginOrEmail: string, password: string): Promise<string | null> {
-        const user = await userRepository.findByLoginOrEmail(loginOrEmail);
-        if (!user) return null;
-
-        const passwordHash = await this._generateHash(password, user.passwordSalt);
-        if (user.passwordHash === passwordHash) {
-            return toIdString(user._id);
-        } else {
-            return null;
-        }
-
-    },
+    // async checkCredentials(loginOrEmail: string, password: string): Promise<string | null> {
+    //     const user = await userRepository.findByLoginOrEmail(loginOrEmail);
+    //     if (!user) return null;
+    //
+    //     const passwordHash = await this._generateHash(password, user.passwordSalt);
+    //     if (user.passwordHash === passwordHash) {
+    //         return toIdString(user._id);
+    //     } else {
+    //         return null;
+    //     }
+    //
+    // },
     async checkExistingUser(login: string, email: string): Promise<ResultObj | null> {
         const existLoginUser = await userRepository.findByLogin(login);
         if (existLoginUser) {
@@ -76,7 +74,7 @@ export const userService = {
     async _generateHash(password: string, passwordSalt: string) {
         return await bcrypt.hash(password, passwordSalt);
     },
-    async deleteUser(id: string) {
-        return userRepository.deleteUser(new ObjectId(id));
+    async deleteUser(id: string): Promise<boolean> {
+        return userRepository.deleteUser(id);
     }
 };

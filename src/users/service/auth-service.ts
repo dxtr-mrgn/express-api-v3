@@ -12,6 +12,9 @@ import {toIdString} from '../../common/helper';
 
 
 export const authService = {
+    _getUniqueCode() {
+        return uuidv4();
+    },
     async registerUser(userInput: UserInputType): Promise<ResultObj> {
         const userDoesExist = await userService.checkExistingUser(userInput.login, userInput.email);
         if (userDoesExist) return userDoesExist;
@@ -19,7 +22,7 @@ export const authService = {
         const passwordSalt = await bcrypt.genSalt(10);
         const passwordHash = await this._generateHash(userInput.password, passwordSalt);
 
-        const confirmationCode = uuidv4();
+        const confirmationCode = this._getUniqueCode()
         const message = getRegistrationEmailTemplate(confirmationCode);
         const newUser: Omit<UserDBType, '_id'> = {
             login: userInput.login,
@@ -42,7 +45,7 @@ export const authService = {
                 id: userId
             };
         } else {
-            await userRepository.deleteUser(new ObjectId(userId));
+            await userRepository.deleteUser(userId);
             return this.errorSendingEmail();
         }
     },
@@ -116,7 +119,7 @@ export const authService = {
             }
         };
 
-        const confirmationCode = uuidv4();
+        const confirmationCode = this._getUniqueCode();
         const message = getRegistrationEmailTemplate(confirmationCode);
         const updatedUser = {
             ...user, emailConfirmation: {
@@ -145,7 +148,7 @@ export const authService = {
                 id: toIdString(userId)
             };
         } else {
-            await userRepository.deleteUser(userId);
+            await userRepository.deleteUser(toIdString(userId));
             return this.errorSendingEmail();
         }
     },
