@@ -17,6 +17,9 @@ export const createUser = async (data?: any): Promise<UserDBType> => {
         password: 'validpassword123',
         email: randomLogin + '@gmail.com'
     };
+
+    console.log(payload);
+
     const res = await api()
         .post(SETTINGS.API.USERS)
         .auth(SETTINGS.LOGIN, SETTINGS.PASSWORD)
